@@ -1,0 +1,23 @@
+function desCyc = desCycUpdater(handles)
+
+desChar = handles.signalinfo.desChar;
+
+constants = handles.signalinfo.constants;
+f = 1/handles.signalinfo.T;%needed when evaluating user input
+for i = 1:length(constants)
+    eval([constants{i},';'])
+end
+
+t = handles.signalinfo.tCyc; %needed when evaluating user input
+rows = length(t);
+cols = length(handles.signalinfo.desChar);
+desCyc = zeros(rows,cols);
+for i = 1:cols
+    desCyc(:,i) = eval(desChar{i}).*ones(size(t));
+end
+
+%make sure d has no NaN entries (e.g., from heaviside functions)
+nanind = find(isnan(desCyc));
+if ~isempty(nanind)
+    desCyc(nanind) = desCyc(nanind+1);
+end

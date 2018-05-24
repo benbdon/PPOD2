@@ -1,0 +1,55 @@
+function handles = Initializedaqinfo(handles)
+
+%daqinfo
+daqinfo.samples_per_second = 9000;
+daqinfo.num_transient_cycles = 10;
+daqinfo.num_collected_cycles = 5;
+daqinfo.num_processing_cycles = 25;
+daqinfo.cycles_per_update = daqinfo.num_transient_cycles+daqinfo.num_collected_cycles+daqinfo.num_processing_cycles;
+
+%ao channel names are: clock sp1, sp2, sp3, sp4, sp5, sp6, cam_trig
+%ai channel names are: x1dd, y1dd, x2dd, y2dd, x3dd,
+%y3dd, x4dd, y4dd, x5dd, y5dd, x6dd, y6dd
+daqinfo.ao_channel_names = ['clock', handles.globalinfo.controlsignals, 'cam_trig'];
+daqinfo.ai_channel_names = [handles.globalinfo.rawplatesignals, handles.globalinfo.actuatorsignals];
+num_outputs = numel(daqinfo.ao_channel_names);
+num_inputs = numel(daqinfo.ai_channel_names);
+
+daqinfo = daqhwinfo;
+if ismember('nidaq',daqinfo.InstalledAdaptors)
+    %nidaq has been found, so configure daq settings
+    if (~isempty(daqfind))
+        stop(daqfind)
+    end
+    daqreset
+
+    %create input and output objects
+    daqinfo.ao = analogoutput('nidaq','Dev2');
+    daqinfo.ai = analoginput('nidaq','Dev3');
+    
+    %daq properties
+    set(daqinfo.ai,'InputType','SingleEnded')
+    set(daqinfo.ai,'TriggerType','HwDigital')
+    set(daqinfo.ai,'TriggerCondition','PositiveEdge');
+
+    %set up channels
+    controlsignals = handles.globalinfo.controlsignals;
+    rawplatesignals = handles.globalinfo.rawplatesignals;
+    addchannel(daqinfo.ao, 0:num_outputs-1,1:num_outputs, daqinfo.ao_channel_names);
+    addchannel(daqinfo.ai, 0:num_inputs-1,1:num_inputs, daqinfo.ai_channel_names);
+
+    %set sample rates
+    daqinfo.ao.SampleRate = daqinfo.samples_per_second;
+    daqinfo.ai.SampleRate = daqinfo.samples_per_second;
+    
+    %set range of input voltages
+    handles.daqinfo.ai.Channel.InputRange = [-5, 5];
+
+else
+    %no nidaq found
+
+    handles.daqinfo.ao = [];
+    handles.daqinfo.ai = [];
+    handles.daqinfo.ao.SampleRate = [];
+    handles.daqinfo.ai.SampleRate = [];
+end

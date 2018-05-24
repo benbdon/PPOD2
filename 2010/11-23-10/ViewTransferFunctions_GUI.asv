@@ -1,0 +1,563 @@
+function varargout = ViewTransferFunctions_GUI(varargin)
+% VIEWTRANSFERFUNCTIONS_GUI M-file for ViewTransferFunctions_GUI.fig
+%      VIEWTRANSFERFUNCTIONS_GUI, by itself, creates a new VIEWTRANSFERFUNCTIONS_GUI or raises the existing
+%      singleton*.
+%
+%      H = VIEWTRANSFERFUNCTIONS_GUI returns the handle to a new VIEWTRANSFERFUNCTIONS_GUI or the handle to
+%      the existing singleton*.
+%
+%      VIEWTRANSFERFUNCTIONS_GUI('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in VIEWTRANSFERFUNCTIONS_GUI.M with the given input arguments.
+%
+%      VIEWTRANSFERFUNCTIONS_GUI('Property','Value',...) creates a new VIEWTRANSFERFUNCTIONS_GUI or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before ViewTransferFunctions_GUI_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to ViewTransferFunctions_GUI_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help ViewTransferFunctions_GUI
+
+% Last Modified by GUIDE v2.5 19-Nov-2010 15:15:46
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @ViewTransferFunctions_GUI_OpeningFcn, ...
+                   'gui_OutputFcn',  @ViewTransferFunctions_GUI_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before ViewTransferFunctions_GUI is made visible.
+function ViewTransferFunctions_GUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to ViewTransferFunctions_GUI (see VARARGIN)
+
+% Choose default command line output for ViewTransferFunctions_GUI
+handles.output = hObject;
+
+handles.globalinfo = varargin{1};
+handles.controllerinfo = varargin{2};
+
+%update Select Transfer Function panel
+set(handles.inputSignals_ui,'Value',1)
+if strcmp(handles.globalinfo.aiConfig,'standard')
+    set(handles.inputSignals_Pdd,'enable','off')
+end
+set(handles.outputSignals_Pdd,'Value',1)
+set(handles.outputSignals_f,'enable','off')
+set(handles.outputHarmonic,'string','1')
+
+%update listboxes
+loadListboxes(handles)
+set(handles.inputListbox,'value',2)
+set(handles.outputListbox,'value',1)
+
+%update Plot Options panel
+set(handles.magUnit_raw,'value',1)
+set(handles.freqUnit_Hz,'value',1)
+
+plotG(handles)
+
+% Update handles structure
+guidata(hObject, handles);
+
+% UIWAIT makes ViewTransferFunctions_GUI wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = ViewTransferFunctions_GUI_OutputFcn(hObject, eventdata, handles) 
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+% --- Executes on button press in ui_2_pm1ddx.
+function ui_2_pm1ddx_Callback(hObject, eventdata, handles)
+% hObject    handle to ui_2_pm1ddx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of ui_2_pm1ddx
+
+
+% --- Executes on button press in ui_2_pm1ddy.
+function ui_2_pm1ddy_Callback(hObject, eventdata, handles)
+% hObject    handle to ui_2_pm1ddy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of ui_2_pm1ddy
+
+
+% --- Executes on button press in ui_2_pm2ddx.
+function ui_2_pm2ddx_Callback(hObject, eventdata, handles)
+% hObject    handle to ui_2_pm2ddx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of ui_2_pm2ddx
+
+
+% --- Executes on button press in sp42y_sp.
+function sp42y_sp_Callback(hObject, eventdata, handles)
+% hObject    handle to sp42y_sp (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of sp42y_sp
+
+
+% --- Executes on button press in u3_2_didd.
+function u3_2_didd_Callback(hObject, eventdata, handles)
+% hObject    handle to u3_2_didd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of u3_2_didd
+
+
+% --- Executes on button press in u2_2_didd.
+function u2_2_didd_Callback(hObject, eventdata, handles)
+% hObject    handle to u2_2_didd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of u2_2_didd
+
+
+% --- Executes on button press in u1_2_didd.
+function u1_2_didd_Callback(hObject, eventdata, handles)
+% hObject    handle to u1_2_didd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of u1_2_didd
+
+
+% --------------------------------------------------------------------
+function plotoptions_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to plotoptions (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% --- Executes when selected object is changed in plotoptions.
+function plotoptions_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in plotoptions 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+
+PlotGn(handles)
+
+
+% --- Executes when selected object is changed in magUnitsSelector.
+function magUnitsSelector_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in magUnitsSelector 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+
+plotG(handles)
+
+% --- Executes on button press in ui_2_pm2ddy.
+function ui_2_pm2ddy_Callback(hObject, eventdata, handles)
+% hObject    handle to ui_2_pm2ddy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of ui_2_pm2ddy
+
+
+% --- Executes when selected object is changed in freqUnitsSelector.
+function freqUnitsSelector_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in freqUnitsSelector 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+plotG(handles)
+
+
+% --- Executes on selection change in inputListbox.
+function inputListbox_Callback(hObject, eventdata, handles)
+% hObject    handle to inputListbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = get(hObject,'String') returns inputListbox contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from inputListbox
+inputValue = get(handles.inputListbox,'value');
+outputValue = get(handles.outputListbox,'value');
+
+if inputValue == 1 && outputValue == 1
+    set(handles.inputListbox,'value',2)
+end
+plotG(handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function inputListbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to inputListbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in outputListbox.
+function outputListbox_Callback(hObject, eventdata, handles)
+% hObject    handle to outputListbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = get(hObject,'String') returns outputListbox contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from outputListbox
+inputValue = get(handles.inputListbox,'value');
+outputValue = get(handles.outputListbox,'value');
+
+if inputValue == 1 && outputValue == 1
+    set(handles.outputListbox,'value',2)
+end
+
+plotG(handles)
+
+% --- Executes during object creation, after setting all properties.
+function outputListbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to outputListbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes when selected object is changed in inputSelector.
+function inputSelector_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in inputSelector 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+
+if get(handles.inputListbox,'value') ~= 1
+    set(handles.inputListbox,'value',2)
+end
+
+inputSignals = get(hObject,'tag');
+outputSignals = get(get(handles.outputSelector,'selectedObject'),'tag');
+switch inputSignals
+    case 'inputSignals_ui'
+        set(handles.outputSignals_amidd,'enable','on')
+        set(handles.outputSignals_didd,'enable','on')
+        set(handles.outputSignals_pmidd,'enable','on')
+        set(handles.outputSignals_Pdd,'enable','on')
+        set(handles.outputSignals_f,'enable','off')
+        
+        switch outputSignals
+            case 'outputSignals_f'
+                set(handles.outputSignals_Pdd,'value',1)
+        end
+    case 'inputSignals_didd'
+        set(handles.outputSignals_amidd,'enable','off')
+        set(handles.outputSignals_didd,'enable','off')
+        set(handles.outputSignals_pmidd,'enable','on')
+        set(handles.outputSignals_Pdd,'enable','on')
+        if strcmp(handles.globalinfo.aiConfig,'force')
+            set(handles.outputSignals_f,'enable','on')
+        else
+            set(handles.outputSignals_f,'enable','off')
+        end
+        
+        switch outputSignals
+            case 'outputSignals_amidd'
+                set(handles.outputSignals_pmidd,'value',1)
+            case 'outputSignals_didd'
+                set(handles.outputSignals_pmidd,'value',1)
+        end
+    case 'inputSignals_Pdd'
+        set(handles.outputSignals_amidd,'enable','off')
+        set(handles.outputSignals_didd,'enable','off')
+        set(handles.outputSignals_pmidd,'enable','off')
+        set(handles.outputSignals_Pdd,'enable','off')
+        if strcmp(handles.globalinfo.aiConfig,'force')
+            set(handles.outputSignals_f,'enable','on')
+        else
+            set(handles.outputSignals_f,'enable','off')
+        end
+        
+        switch outputSignals
+            case 'outputSignals_amidd'
+                set(handles.outputSignals_f,'value',1)
+            case 'outputSignals_didd'
+                set(handles.outputSignals_f,'value',1)
+            case 'outputSignals_Pdd'
+                set(handles.outputSignals_f,'value',1)
+        end
+end
+loadListboxes(handles)
+plotG(handles)
+
+% --- Executes when selected object is changed in outputSelector.
+function outputSelector_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in outputSelector 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+if get(handles.outputListbox,'value') ~= 1
+    set(handles.outputListbox,'value',2)
+end
+loadListboxes(handles)
+
+plotG(handles)
+
+function outputHarmonic_Callback(hObject, eventdata, handles)
+% hObject    handle to outputHarmonic (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of outputHarmonic as text
+%        str2double(get(hObject,'String')) returns contents of outputHarmonic as a double
+plotG(handles)
+
+% --- Executes during object creation, after setting all properties.
+function outputHarmonic_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to outputHarmonic (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+%**************************************************************
+%MY FUNCTIONS**************************************************
+%**************************************************************
+function loadListboxes(handles)
+switch get(get(handles.inputSelector,'selectedObject'),'tag')
+    case 'inputSignals_ui'
+        set(handles.inputListbox,'string',['ui (all)',handles.globalinfo.uiSignals])
+    case 'inputSignals_didd'
+        set(handles.inputListbox,'string',['didd (all)',handles.globalinfo.diddSignals])
+    case 'inputSignals_Pdd'
+        set(handles.inputListbox,'string',['Pdd (all)',handles.globalinfo.PddSignals])
+    otherwise 
+        error('selection does not match any case')
+end
+
+switch get(get(handles.outputSelector,'selectedObject'),'tag')
+    case 'outputSignals_amidd'
+        set(handles.outputListbox,'string',['amidd (all)',handles.globalinfo.amiddSignals2])
+    case 'outputSignals_didd'
+        set(handles.outputListbox,'string',['didd (all)',handles.globalinfo.diddSignals])
+    case 'outputSignals_pmidd'
+        set(handles.outputListbox,'string',['pmidd (all)',handles.globalinfo.pmiddSignals2])
+    case 'outputSignals_Pdd'
+        set(handles.outputListbox,'string',['Pdd (all)',handles.globalinfo.PddSignals])
+    case 'outputSignals_f'
+        set(handles.outputListbox,'string',['f (all)',handles.globalinfo.forceSignals])
+    otherwise
+        error('selection does not match any case')
+end
+
+
+function plotG(handles)
+
+inputSignals = get(get(handles.inputSelector,'selectedObject'),'tag');
+outputSignals = get(get(handles.outputSelector,'selectedObject'),'tag');
+    
+switch inputSignals
+    case 'inputSignals_ui'
+        F_all = handles.controllerinfo.F_ui_all;
+        switch outputSignals
+            case 'outputSignals_amidd'
+                G = handles.controllerinfo.G_ui2amidd_all;
+            case 'outputSignals_didd'
+                G = handles.controllerinfo.G_ui2didd_all;
+            case 'outputSignals_pmidd'
+                G = handles.controllerinfo.G_ui2pmidd_all;
+            case 'outputSignals_Pdd'
+                G = handles.controllerinfo.G_ui2Pdd_all;
+            case 'outputSignals_f'
+                G = handles.controllerinfo.G_ui2f_all;
+            otherwise
+                error('selection does not match any case')
+        end
+                
+    case 'inputSignals_didd'
+        F_all = handles.controllerinfo.F_didd_all;
+        switch outputSignals
+            case 'outputSignals_pmidd'
+                G = handles.controllerinfo.G_didd2pmidd_all;
+            case 'outputSignals_Pdd'
+                G = handles.controllerinfo.G_didd2Pdd_all;
+            case 'outputSignals_f'
+                G = handles.controllerinfo.G_didd2f_all;
+            otherwise
+                error('selection does not match any case')
+        end
+    case 'inputSignals_Pdd'
+        F_all = handles.controllerinfo.F_Pdd_all;
+        switch outputSignals
+            case 'outputSignals_f'
+                G = handles.controllerinfo.G_Pdd2f_all;
+            otherwise
+                error('selection does not match any case')
+        end
+    otherwise
+        error('selection does not match any case')
+end
+
+inputValue = get(handles.inputListbox,'value');
+inputList = get(handles.inputListbox,'string');
+outputValue = get(handles.outputListbox,'value');
+outputList = get(handles.outputListbox,'string');
+
+if inputValue == 1
+    numInputs = numel(inputList)-1;
+    inputInds = 1:numInputs;
+    inputNames = inputList(2:end);
+else
+    numInputs = 1;
+    inputInds = inputValue-1;
+    inputNames = inputList(inputValue);
+end
+
+if outputValue == 1
+    numOutputs = numel(outputList)-1;
+    outputInds = 1:numOutputs;
+    outputNames = outputList(2:end);
+else
+    numOutputs = 1;
+    outputInds = outputValue-1;
+    outputNames = outputList(outputValue);
+end
+
+set(handles.F_all,'string',mat2str(F_all))
+
+outputHarmonic = eval(get(handles.outputHarmonic,'string'));
+
+freqUnits = get(get(handles.freqUnitsSelector,'selectedObject'),'tag');
+magUnits = get(get(handles.magUnitsSelector,'selectedObject'),'tag');
+
+switch magUnits
+    case 'magUnit_raw'
+        magG = abs(G);
+        phaseG = angle(G);
+    case 'magUnit_db'
+        magG = 20*log10(abs(G));
+        phaseG = angle(G);
+    otherwise
+        error('selection is not a case')
+end
+
+switch freqUnits
+    case 'freqUnit_Hz'
+    case 'freqUnit_rad'
+        F_all = F_all*2*pi;
+    otherwise
+        error('selection is not a case')
+end
+
+magGmax = max(max(max(abs(squeeze(magG(outputInds,inputInds,:,:))))));
+magG_plot = [];
+phaseG_plot = [];
+for i = 1:numOutputs
+    for j = 1:numInputs
+        if strcmp(outputSignals, 'outputSignals_pmidd')
+            if numOutputs < numel(handles.globalinfo.pmiddSignals)
+                magG_plot(:,1) = squeeze(magG(2*outputInds(i)-1,inputInds(j),:,outputHarmonic));
+                phaseG_plot(:,1) = squeeze(phaseG(2*outputInds(i)-1,inputInds(j),:,outputHarmonic));
+                magG_plot(:,2) = squeeze(magG(2*outputInds(i),inputInds(j),:,outputHarmonic));
+                phaseG_plot(:,2) = squeeze(phaseG(2*outputInds(i),inputInds(j),:,outputHarmonic));
+                legText = {'x','y'};
+            else
+                magG_plot = squeeze(magG(outputInds(i),inputInds(j),:,outputHarmonic));
+                phaseG_plot = squeeze(phaseG(outputInds(i),inputInds(j),:,outputHarmonic));
+            end
+        elseif strcmp(outputSignals,'outputSignals_amidd')
+            if numOutputs < numel(handles.globalinfo.amiddSignals)
+                magG_plot(:,1) = squeeze(magG(2*outputInds(i)-1,inputInds(j),:,outputHarmonic));
+                phaseG_plot(:,1) = squeeze(phaseG(2*outputInds(i)-1,inputInds(j),:,outputHarmonic));
+                magG_plot(:,2) = squeeze(magG(2*outputInds(i),inputInds(j),:,outputHarmonic));
+                phaseG_plot(:,2) = squeeze(phaseG(2*outputInds(i),inputInds(j),:,outputHarmonic));
+                legText = {'x','y'};
+            else
+                magG_plot = squeeze(magG(outputInds(i),inputInds(j),:,outputHarmonic));
+                phaseG_plot = squeeze(phaseG(outputInds(i),inputInds(j),:,outputHarmonic));
+            end
+        else
+            magG_plot = squeeze(magG(outputInds(i),inputInds(j),:,outputHarmonic));
+            phaseG_plot = squeeze(phaseG(outputInds(i),inputInds(j),:,outputHarmonic));
+        end
+        
+        eval(['set(handles.axes',num2str(2*i*j-1),',''visible'',''on'')'])
+        eval(['axes(handles.axes',num2str(2*i*j-1),')'])
+        cla
+        hold on
+        stem(F_all,magG_plot)
+        set(gca,'ylim',[0 max(1.1*magGmax,1)])
+        title(['Gain: ',inputNames{j},' --> ',outputNames{i}])
+        if i == 1 && j == 1 && exist('legText')
+            legend(legText)
+        else
+            legend(
+        
+        eval(['set(handles.axes',num2str(2*i*j),',''visible'',''on'')'])
+        eval(['axes(handles.axes',num2str(2*i*j),')'])
+        cla
+        hold on
+        stem(F_all,phaseG_plot)
+        set(gca,'ylim',[-pi pi])
+        title(['Phase: ',inputNames{j},' --> ',outputNames{i}])
+    end
+end
+
+for i = max(numInputs,numOutputs)*2+1:12
+    eval(['axes(handles.axes',num2str(i),')'])
+    cla
+    eval(['set(handles.axes',num2str(i),',''visible'',''off'')'])
+end
+    
+        

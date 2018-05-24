@@ -1,0 +1,17 @@
+#include "template.bio"
+#include "template.lbl"
+#include "template.sid"
+
+
+const xpc_SigMappingInfo xpcMMI[] =
+  {
+    {
+      {template_BIO},
+      {template_SID},
+      {template_LBL},
+      "",
+      "template",
+      0,
+      1,
+    },
+  };

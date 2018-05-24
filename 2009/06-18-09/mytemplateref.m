@@ -1,0 +1,2 @@
+function child=mytemplateref
+child = [];

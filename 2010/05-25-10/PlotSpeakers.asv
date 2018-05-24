@@ -1,0 +1,26 @@
+%This function plots the control (green) and acceleration (red) signals
+%corresponding to the speakers.
+
+function PlotSpeakers(handles)
+
+speakersignals = handles.globalinfo.speakersignals;
+y_sp = handles.signalinfo.y_sp;
+u = handles.signalinfo.u;
+t_all = handles.plateinfo.t_all;
+
+%find handles for u and y_sp.  each handles is a vector with
+%numel(speakerignals) components (one u and y_sp for each of the plots)
+u_han = findobj('tag','u');
+y_sp_han = findobj('tag','y_sp')
+for i = 1:numel(speakersignals)
+    %go to ith axes of speaker signals panel
+    eval(['axes(handles.',speakersignals{i},'_axes)'])
+    
+    %determine handles to line objects in axes.  these are returned in the
+    %opposite order they were created in InitializeSpeakerPlots.m
+    line_han = findobj('type','line');
+    set(u_han(numel(speakersignals)+1-i),'xdata',t_all,'ydata',y_sp(:,i)) %update y_sp
+    set(y_sp_han(numel(speakerignals)+1-i),'xdata',t_all,'ydata',u(:,i)) %update u
+    
+    set(gca,'xlim',[0 t_all(end)])
+end

@@ -1,0 +1,11 @@
+
+gg = 0;
+w = 10;
+t = linspace(0,2*pi,10);
+desChar = {'10*sin(w*t)','10sin(w*t)'}
+try
+    gg = eval(desChar{i}).*ones(size(t));
+catch
+    warndlg('bad user data')
+end
+gg

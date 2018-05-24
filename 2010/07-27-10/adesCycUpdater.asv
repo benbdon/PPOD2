@@ -1,0 +1,48 @@
+function adesCyc = adesCycUpdater(handles,hObject)
+
+adesChar = get(hObject,'String');
+adesTag = get(hObject,'tag');
+
+if isempty(adesChar)
+    adesChar = '0';
+    set(hObject,'string',adesChar)
+end
+
+ind = plateAccSignals(
+handles.plateinfo.adesChar{ind} = d_char_pddx;
+
+%update plateinfo
+handles.plateinfo.filename = 'temp';
+
+%update signalinfo
+plateAccSignals = handles.globalinfo.plateAccSignals;
+plateAccLocalSignals = handles.globalinfo.plateAccLocalSignals;
+actuatorAccSignals = handles.globalinfo.actuatorAccSignals;
+controlSignals = handles.globalinfo.controlSignals;
+
+tCyc = handles.signalinfo.tCyc; %call it t so that d_char can be evalulated
+
+N_T = length(tCyc);
+N_PAS = length(plateAccSignals);
+N_PALS = length(plateAccLocalSignals);
+N_AAS = length(actuatorAccSignals);
+N_CS = length(controlSignals);
+
+handles.signalinfo.aCyc = zeros(N_T,N_PAS);
+handles.signalinfo.aLocalCyc = zeros(N_T, N_PALS);
+handles.signalinfo.dddCyc = zeros(N_T, N_AAS);
+handles.signalinfo.uCyc = zeros(N_T, N_CS);
+
+constants = handles.plateinfo.constants;
+f = 1/handles.plateinfo.T;
+for i = 1:length(constants)
+    eval([constants{i},';'])
+end
+t = tCyc; %needed when evaluating user input
+handles.signalinfo.adesCyc(:,ind) = eval(handles.plateinfo.d_char{ind}).*ones(size(tCyc));
+
+%make sure d has no NaN entries (e.g., from heaviside functions)
+nanind = find(isnan(handles.signalinfo.adesCyc));
+if ~isempty(nanind)
+    handles.signalinfo.adesCyc(nanind) = handles.signalinfo.adesCyc(nanind+1);
+end

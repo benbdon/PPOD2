@@ -1,0 +1,72 @@
+clc
+close all
+f = 30;
+T = 1/f;
+dt = 1/9000;
+t = [0:dt:T-dt]';
+
+Gn = handles.controllerinfo.Gn;
+
+u = [sin(2*pi*30*t) 0*t 0*t];
+u_fft = fft(u);
+
+y_fft = 0*u_fft;
+th = 0*pi/8;
+y_fft(2,:) = (Gn*u_fft(2,:)')';
+y_fft(end,:) = conj(y_fft(2,:));
+
+y_fft = 0*u_fft(:,1);
+y_fft(2) = Gn(1,1,1)*u_fft(2);
+y_fft(end) = conj(y_fft(2));
+
+y = ifft(y_fft);
+figure(1)
+plot(t,y)
+legend('x')
+%legend('x','z','alpha')
+
+
+
+
+% u = [sin(2*pi*f*t) -cos(2*pi*f*t) cos(2*pi*f*t)];
+% ulong = repmat(u,[2,1]);
+% 
+% u_fft = fft(u);
+% ulong_fft = fft(ulong);
+% 
+% figure(1)
+% subplot(2,2,1)
+% stem(abs(u_fft(1:5,:)))
+% legend('sin','-cos','cos')
+% subplot(2,2,2)
+% stem(abs(ulong_fft(1:10,:)))
+% legend('sin','-cos','cos')
+% 
+% subplot(2,2,3)
+% stem(angle(u_fft(1:5,:)))
+% legend('sin','-cos','cos')
+% subplot(2,2,4)
+% stem(angle(ulong_fft(1:10,:)))
+% legend('sin','-cos','cos')
+
+
+% 
+% u = sin(2*pi*f*t);
+% y = -10*cos(2*pi*f*t);
+% 
+% u_fft = fft(u);
+% y_fft = fft(y);
+% 
+% G = y_fft(2)/u_fft(2);
+% 
+% uin = -cos(2*pi*f*t);
+% uin_fft = fft(uin);
+% 
+% yout_fft = 0*y_fft;
+% yout_fft(2) = G*uin_fft(2);
+% yout_fft(end) = conj(yout_fft(2));
+% 
+% yout = ifft(yout_fft);
+% 
+% figure(1)
+% plot(t,yout)

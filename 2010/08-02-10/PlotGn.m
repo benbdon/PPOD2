@@ -1,0 +1,344 @@
+function PlotGn(handles)
+
+mainGUIhandles = handles.mainGUIhandles;
+
+actuatorAccSignals = mainGUIhandles.globalinfo.actuatorAccSignals;
+plateAccSignals = mainGUIhandles.globalinfo.plateAccSignals;
+plateAccLocalSignals = mainGUIhandles.globalinfo.plateAccLocalSignals;
+controlSignals = mainGUIhandles.globalinfo.controlSignals;
+
+if isempty(actuatorAccSignals)
+    for i = 1:numel(controlSignals)
+        eval(['set(handles.',controlSignals{i},'_2_y_sp,''visible'',''off'')'])
+    end
+    for i = 1:6
+        eval(['set(handles.u_2_sp',num2str(i),',''visible'',''off'')'])
+    end
+    set(handles.uipanel19,'visible','off')
+    set(handles.uipanel20,'visible','off')
+end
+
+F = mainGUIhandles.controllerinfo.F;
+G_u2acc = mainGUIhandles.controllerinfo.G_u2acc;
+Gn_mag = abs(G_u2acc);
+Gn_phase = angle(G_u2acc);
+G_u2accLocal = mainGUIhandles.controllerinfo.G_u2accLocal;
+Gn_raw_mag = abs(G_u2accLocal);
+Gn_raw_phase = angle(G_u2accLocal);
+G_u2ddd = mainGUIhandles.controllerinfo.G_u2ddd;
+Gn_sp_mag = abs(G_u2ddd);
+Gn_sp_phase = angle(G_u2ddd);
+
+set(handles.controlledfreqs,'string',[mat2str(F), ' Hz'])
+
+%create cell array of plotting options with each panel in GUI
+%corresponding to a row and the entries in that panel making up the columns in
+%that row
+for i = 1:6
+    switch i
+        case 1 %e.g., u1 --> y
+            for j = 1:numel(controlSignals)
+                plotoptions{i,j} = [controlSignals{j},'_2_y'];
+            end
+        case 2 %e.g., u --> y.pddx
+            for j = 1:numel(plateAccSignals)
+                plotoptions{i,j} = ['u_2_',plateAccSignals{j}];
+            end
+        case 3 %e.g., u1 --> y_raw
+            for j = 1:numel(controlSignals)
+                plotoptions{i,j} = [controlSignals{j},'_2_y_raw'];
+            end
+        case 4 % e.g., u --> y_raw.x1dd
+            for j = 1:numel(plateAccLocalSignals)
+                plotoptions{i,j} = ['u_2_',plateAccLocalSignals{j}];
+            end
+        case 5 %e.g., u1 --> y_sp
+            for j = 1:numel(controlSignals)
+                plotoptions{i,j} = [controlSignals{j},'_2_y_sp'];
+            end
+        case 6 %e.g., u --> y_sp1
+            for j = 1:numel(actuatorAccSignals)
+                plotoptions{i,j} = ['u_2_',actuatorAccSignals{j}];
+            end
+    end
+end
+
+
+%get tag of selected radio button in frequency units button panel
+frequencyunits = get(get(handles.frequencyunits,'selectedobject'),'tag');
+if strcmp(frequencyunits,'Hz')
+    freqs = F; %cyc/s (Hz)
+    xlabeltext = 'Frequency (Hz)';
+else
+    freqs = F/(2*pi); %rad/s
+    xlabeltext = 'Frequency (rad/s)';
+end
+
+%get tag of selected radio button in gain units button panel
+gainunits = get(get(handles.gainunits,'selectedobject'),'tag');
+if strcmp(gainunits,'V_per_acc')
+    gain = Gn_mag;
+    gain_raw = Gn_raw_mag;
+    gain_sp = Gn_sp_mag;
+    ylabeltext = {'gain (m/s^2/V)','gain (rad/s^2/V)'};
+
+    %largest linear and angular responses
+    ymax = max(max(max(abs(G_u2acc(1:3,:,:)))));
+    ymin = 0;
+    alphamax = max(max(max(abs(G_u2acc(4:6,:,:)))));
+    alphamin = 0;
+
+    %largest raw responses
+    ymax_raw = max(max(max(abs(G_u2accLocal(:,:,:)))));
+    ymin_raw = 0;
+
+    %largest speaker responses
+    ymax_sp = max(max(max(abs(G_u2ddd(:,:,:)))));
+    ymin_sp = 0;
+
+else
+    gain = 20*log10(Gn_mag);
+    gain_raw = 20*log10(Gn_raw_mag);
+    gain_sp = 20*log10(Gn_sp_mag);
+    ylabeltext = {'gain (dB)','gain (dB)'};
+
+    %largest linear and angular repsonses
+    ymax = 20*log10(max(max(max(abs(G_u2acc(1:2,:,:))))));
+    ymin = 20*log10(min(min(min(abs(G_u2acc(1:2,:,:))))));
+
+    alphamax = 20*log10(max(max(max(abs(G_u2acc(3,:,:))))));
+    alphamin = 20*log10(min(min(min(abs(G_u2acc(3,:,:))))));
+
+    %largest raw responses
+    ymax_raw = 20*log10(max(max(max(abs(G_u2accLocal(:,:,:))))));
+    ymin_raw = 20*log10(min(min(min(abs(G_u2accLocal(:,:,:))))));
+
+    %largest speaker responses
+    ymax_sp = 20*log10(max(max(max(abs(G_u2ddd(:,:,:))))));
+    ymin_sp = 20*log10(min(min(min(abs(G_u2ddd(:,:,:))))));
+end
+
+%get the plot options block (blocknum) and position within the block (blocknum_ind)
+plottype = get(get(handles.plotoptions,'selectedobject'),'tag');
+
+[row col] = size(plotoptions);
+for i = 1:row
+    for j = 1:col
+        if strcmp(plottype, plotoptions{i,j})
+            panel = i;
+            ind = j;
+        end
+    end
+end
+
+if exist('panel')
+    switch panel
+
+        case 1 %panel 1: %e.g., u1 --> y (1 input --> 6 outputs)
+
+            for i = 1:numel(plateAccSignals)
+                %gain plots
+                eval(['axes(handles.axes',num2str(2*i-1),')'])
+                stem(freqs, squeeze(gain(i,ind,:)))
+                set(gca,'xlim',[0 F(end)+10])
+                if i <= 3
+                    set(gca,'ylim',[1.1*ymin 1.1*ymax])
+                    if i == 1
+                        ylabel(ylabeltext{1})
+                    end
+                else
+                    set(gca,'ylim',[1.1*alphamin 1.1*alphamax])
+                    if i == 4
+                        ylabel(ylabeltext{2})
+                    end
+                end
+                if strcmp(frequencyunits,'rad_per_s')
+                    set(gca,'Xscale','log')
+                end
+                title([controlSignals{ind},' --> ',plateAccSignals{i}])
+
+                %phase plots
+                eval(['axes(handles.axes',num2str(2*i),')'])
+                stem(freqs, unwrap(squeeze(Gn_phase(i,ind,:))))
+                set(gca,'xlim',[0 F(end)+10])
+                if strcmp(frequencyunits,'rad_per_s')
+                    set(gca,'Xscale','log')
+                end
+                set(gca,'ylim',[1.5*-2*pi,1.5*2*pi])
+                set(gca,'ytick',[-2*pi:pi:2*pi])
+                if i == 1
+                    xlabel(xlabeltext)
+                    ylabel('phase (rad)')
+                end
+            end
+
+        case 2 %panel 2: %e.g., u --> y.pddx (6 inputs --> 1 output)
+
+            for i = 1:numel(controlSignals)
+                %gain plots
+                eval(['axes(handles.axes',num2str(2*i-1),')'])
+                stem(freqs, squeeze(gain(ind,i,:)))
+                set(gca,'xlim',[0 F(end)+10])
+                if ind <= 3
+                    set(gca,'Ylim',[1.1*ymin 1.1*ymax])
+                    if i == 1
+                        ylabel(ylabeltext{1})
+                    end
+                else
+                    set(gca,'Ylim',[1.1*alphamin 1.1*alphamax])
+                    if i == 1
+                        ylabel(ylabeltext{2})
+                    end
+
+                end
+                if strcmp(frequencyunits,'rad_per_s')
+                    set(gca,'Xscale','log')
+                end
+                title([controlSignals{i},' --> ',plateAccSignals{ind}])
+
+                %phase plots
+                eval(['axes(handles.axes',num2str(2*i),')'])
+                stem(freqs, unwrap(squeeze(Gn_phase(ind,i,:))))
+                set(gca,'xlim',[0 F(end)+10])
+                if strcmp(frequencyunits,'rad_per_s')
+                    set(gca,'Xscale','log')
+                end
+                set(gca,'ylim',[-1.5*2*pi,1.5*2*pi])
+                set(gca,'ytick',[-2*pi:pi:2*pi])
+                if i == 1
+                    xlabel(xlabeltext)
+                    ylabel('phase (rad)')
+                end
+            end
+
+        case 3 %panel 3: %e.g., u1 --> y_raw (1 input --> 12 outputs)
+            %since this requires 24 plots, just plot the magnitude plots
+
+            for i = 1:numel(plateAccLocalSignals)
+                %gain plots
+                eval(['axes(handles.axes',num2str(i),')'])
+                stem(freqs, squeeze(gain_raw(i,ind,:)))
+                set(gca,'ylim',[1.1*ymin_raw 1.1*ymax_raw])
+                set(gca,'xlim',[0 F(end)+10])
+                if strcmp(frequencyunits,'rad_per_s')
+                    set(gca,'Xscale','log')
+                end
+                title([controlSignals{ind},' --> ',plateAccLocalSignals{i}])
+                if i == 1 || i == 2
+                    ylabel(ylabeltext{1})
+                    if i == 2
+                        xlabel(xlabeltext)
+                    end
+                end
+            end
+
+        case 4  %panel 4: %e.g., u --> y_raw.x1dd (6 inputs --> 1 output)
+
+            for i = 1:numel(controlSignals)
+                %gain plots
+                eval(['axes(handles.axes',num2str(2*i-1),')'])
+                stem(freqs, squeeze(gain_raw(ind,i,:)))
+                set(gca,'ylim',[1.1*ymin_raw 1.1*ymax_raw])
+                set(gca,'xlim',[0 F(end)+10])
+                if strcmp(frequencyunits,'rad_per_s')
+                    set(gca,'Xscale','log')
+                end
+                title([controlSignals{i},' --> ',plateAccLocalSignals{ind}])
+                if i == 1
+                    ylabel(ylabeltext{1})
+                end
+
+                %phase plots
+                eval(['axes(handles.axes',num2str(2*i),')'])
+                stem(freqs, unwrap(squeeze(Gn_raw_phase(ind,i,:))))
+                set(gca,'xlim',[0 F(end)+10])
+                if strcmp(frequencyunits,'rad_per_s')
+                    set(gca,'Xscale','log')
+                end
+                set(gca,'ylim',[-1.5*2*pi,1.5*2*pi])
+                set(gca,'ytick',[-2*pi:pi:2*pi])
+                if i == 1
+                    xlabel(xlabeltext)
+                    ylabel('phase (rad)')
+                end
+            end
+
+        case 5 %panel 5: %e.g., u1 --> y_sp (1 input --> 6 outputs)
+            if ~ismempty(actuatorAccSignals)
+                for i = 1:numel(actuatorAccSignals)
+                    %gain plots
+                    eval(['axes(handles.axes',num2str(2*i-1),')'])
+                    stem(freqs, squeeze(gain_sp(i,ind,:)))
+                    set(gca,'ylim',[1.1*ymin_sp 1.1*ymax_sp])
+                    set(gca,'xlim',[0 F(end)+10])
+                    if strcmp(frequencyunits,'rad_per_s')
+                        set(gca,'Xscale','log')
+                    end
+                    title([controlSignals{ind},' --> ',actuatorAccSignals{i}])
+                    if i == 1
+                        ylabel(ylabeltext{1})
+                    end
+
+                    %phase plots
+                    eval(['axes(handles.axes',num2str(2*i),')'])
+                    stem(freqs, unwrap(squeeze(Gn_sp_phase(i,ind,:))))
+                    set(gca,'xlim',[0 F(end)+10])
+                    if strcmp(frequencyunits,'rad_per_s')
+                        set(gca,'Xscale','log')
+                    end
+                    set(gca,'ylim',[-1.5*2*pi,1.5*2*pi])
+                    set(gca,'ytick',[-2*pi:pi:2*pi])
+                    if i == 1
+                        xlabel(xlabeltext)
+                        ylabel('phase (rad)')
+                    end
+                end
+            else
+                warndlg('This option is not available because the speaker signals were not measured.')
+                uiwait
+            end
+
+
+        case 6  %panel 6: %e.g., u --> y_sp1
+            if ~ismempty(actuatorAccSignals)
+                axes(handles.axes7)
+                cla
+                set(gca,'visible','off')
+                axes(handles.axes8)
+                cla
+                set(gca,'visible','off')
+
+                for i = 1:numel(controlSignals)
+                    %gain plots
+                    eval(['axes(handles.axes',num2str(2*i-1),')'])
+                    stem(freqs, squeeze(gain_sp(ind,i,:)))
+                    set(gca,'ylim',[1.1*ymin_sp 1.1*ymax_sp])
+                    set(gca,'xlim',[0 F(end)+10])
+                    if strcmp(frequencyunits,'rad_per_s')
+                        set(gca,'Xscale','log')
+                    end
+                    title([controlSignals{i},' --> ',actuatorAccSignals{ind}])
+                    if i == 1
+                        ylabel(ylabeltext{1})
+                    end
+
+                    %phase plots
+                    eval(['axes(handles.axes',num2str(2*i),')'])
+                    stem(freqs, unwrap(squeeze(Gn_sp_phase(ind,i,:))))
+                    set(gca,'xlim',[0 F(end)+10])
+                    if strcmp(frequencyunits,'rad_per_s')
+                        set(gca,'Xscale','log')
+                    end
+                    set(gca,'ylim',[-1.5*2*pi,1.5*2*pi])
+                    set(gca,'ytick',[-2*pi:pi:2*pi])
+                    if i == 1
+                        xlabel(xlabeltext)
+                        ylabel('phase (rad)')
+                    end
+                end
+            else
+                warndlg('This option is not available because the speaker signals were not measured.')
+                uiwait
+            end
+    end
+end

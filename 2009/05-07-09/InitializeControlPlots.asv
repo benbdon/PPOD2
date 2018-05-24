@@ -1,0 +1,29 @@
+%Initializes plots for speakers.  the control signal (green) and the
+%acceleration signal (red) are initially horizontal lines at zero
+
+function InitializeControlPlots(handles)
+
+t_all = handles.plateinfo.t_all;
+T = handles.plateinfo.T;
+
+
+ymax = handles.controllerinfo.saturation*1.5;
+
+titlefontsize = 8;
+
+controlsignals = handles.globalinfo.controlsignals;
+for i = 1:numel(controlsignals)
+    eval(['axes(handles.',controlsignals{i},'_axes)'])
+    cla
+    titletext = controlsignals{i};
+    title(titletext,'fontsize',titlefontsize);
+    set(gca, 'xlim', [0 T]);
+    set(gca, 'ylim', [-ymax ymax]);
+    line(t_all,0*t_all,'Color','g','tag','u');
+    line(t_all,0*t_all,'Color','r','tag','y_sp');
+    if i == 1
+        xlabel('Time(s)')
+        ylabel('Voltage(V)')
+    end
+end
+ 

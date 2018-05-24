@@ -1,0 +1,5 @@
+clc
+clear all
+
+d = inline('sin(t)','t')
+dd = diff(char(d),'t')

@@ -1,0 +1,5 @@
+clc
+
+d = [NaN, 1, 1, 1, 1, NaN, 0, 0, 0, 0]
+
+find(isnan(handles.signalinfo.d))

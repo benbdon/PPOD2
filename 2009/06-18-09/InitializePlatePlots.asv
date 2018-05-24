@@ -1,0 +1,39 @@
+function InitializePlatePlots(handles)
+
+pddmax = 20;
+alphamax = 150;
+
+T = handles.plateinfo.T;
+t_all = handles.plateinfo.t_all;
+
+titlefontsize = 8;
+
+d = handles.signalinfo.d;
+y = handles.signalinfo.y;
+platesignals = handles.globalinfo.platesignals;
+titletext = {'pdd_x','pdd_y', 'pdd_z','\alpha_x','\alpha_y','\alpha_z'};
+
+for i = 1:numel(platesignals)
+    eval(['axes(handles.',platesignals{i},'_axes)'])
+    cla
+    
+    %plot 
+    line(t_all,y(:,i),'Color','b','tag','d');
+    line(t_all,0*t_all,'Color','r','tag','y');
+    
+    title(titletext{i},'fontsize',titlefontsize,'interpreter','tex');
+    set(gca, 'xlim', [0 T]);
+    if i <= 3
+        set(gca, 'ylim', [-pddmax pddmax]);
+    else
+        set(gca,'ylim', [-alphamax, alphamax]);
+    end
+    if i == 1
+        ylabel('Acc(m/s^2)')
+    end
+    if i == 4
+        ylabel('Ang Acc(rad/s^2)')
+        xlabel('Time(s)')
+        set(gca,'ylim',[-alphamax, alphamax])
+    end
+end

@@ -1,0 +1,53 @@
+clc
+clear all
+close all
+
+%load handles
+load([cd,'\Savedhandles\pddx_trash'],'handles')
+
+y_raw = handles.signalinfo.y_raw;
+y = handles.signalinfo.y;
+t_all = handles.plateinfo.t_all;
+
+N = length(t_all);
+
+
+p1dd_A = y_raw(:,1:2); %acceleration of p1 in accelerometer (L) frame
+
+pdd_all = y(:,1:3)';
+alpha_all = y(:,4:6)';
+
+th_all = [140 160 260 280 20 40]*pi/180;
+r = 0.17; %radial distance of accelerometers from origin of S
+z = -.025; %height of accelerometers from origin of S
+
+pidd_A_all = zeros(18,N);
+for i = 1:6
+    th = th_all(i);
+    pi = [r*cos(th); r*sin(th); z];
+    R = [-sin(th), 0, cos(th);
+        cos(th), 0, sin(th);
+        0, 1, 0];
+    for j = 1:N
+        pdd = pdd_all(:,j);
+        alpha = alpha_all(:,j);
+        pidd_A = R'*(pdd + cross(alpha,r));
+        pidd_A_all(3*i-2:3*i,j) = pidd_A;
+    end
+end
+
+
+figure(1)
+set(gcf,'position',[200 100 500 800])
+subplot(2,1,1)
+hold on
+plot(t_all, pidd_A_all(:,1))
+plot(t_all, pidd_A_all(:,1))
+xlabel('time (s)')
+ylabel('acceleration (m/s^2)')
+title('p1dd_x')
+subplot(2,1,2)
+plot(t_all, p1dd(:,2))
+xlabel('time (s)')
+ylabel('acceleration (m/s^2)')
+title('p1dd_y')

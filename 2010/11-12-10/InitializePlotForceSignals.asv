@@ -1,0 +1,53 @@
+function InitializePlotForceSignals(handles)
+
+T = handles.signalinfo.T;
+samplesPerCycle = handles.signalinfo.samplesPerCycle;
+tCyc = handles.signalinfo.tCyc;
+fCyc = handles.signalinfo.fCyc;
+fCyc_fft = fft(fCyc);
+
+f1 = 1/handles.signalinfo.T;
+plottedHarmonics = eval(get(handles.plottedHarmonics,'string'));
+plottedFreqs = sort(f1*plottedHarmonics);
+
+titlefontsize = 8;
+titletext = {'F_x','F_y','F_z','M_x','M_y','M_z'};
+
+ymax = max(max([signal1 signal2]))
+
+forceSignals = handles.globalinfo.forceSignals;
+for i = 1:numel(forceSignals)
+    eval(['axes(handles.fAxes',num2str(i),')'])
+    cla
+    
+    tag = {['f',num2str(i),'Cyc']};
+    %draw force signal
+    domain = get(get(handles.freqTimeSelector,'selectedobject'),'tag');
+    switch domain
+        case 'timeDomain'
+            line(tCyc, fCyc(:,i),'Color','g','tag',tag{1});
+            %draw saturation voltage lines
+            line([tCyc(1), tCyc(end)], [uMax,uMax],'color','k','linestyle',':','tag',tag{2})
+            line([tCyc(1), tCyc(end)], -[uMax,uMax] ,'color','k','linestyle',':','tag',tag{3})
+            set(gca, 'xlim', [0 T],'xtick',0:T/2:T);
+            xlabeltext = {'Time (s)'};
+        case 'freqDomain'
+            stem(plottedFreqs, abs(uCyc_fft(plottedHarmonics+1,i))/samplesPerCycle*2,'Color','g','marker','*','tag',tag{1});
+            %draw saturation voltage lines
+            line([plottedFreqs(1), plottedFreqs(end)], [uMax,uMax],'color','k','linestyle',':','tag',tag{2})
+            line([plottedFreqs(1), plottedFreqs(end)], -[uMax,uMax],'color','k','linestyle',':','tag',tag{3})
+            set(gca,'xlim',[plottedFreqs(1) plottedFreqs(end)],'xtick',plottedFreqs)
+            xlabeltext = {'Frequency (Hz)'};
+    end
+    
+    title(titletext{i},'fontsize',titlefontsize);
+    set(gca, 'ylim', [-ymax ymax]);
+    
+    if i == 1
+        ylabel('Voltage(V)')
+    end
+    if i == 6
+        xlabel(xlabeltext)
+    end
+end
+ 

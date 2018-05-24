@@ -1,0 +1,85 @@
+%stop(ao);
+%stop(ai);
+%delete(ao);
+%delete(ai);
+
+%pause(2)
+
+daqreset
+clc
+clear
+close all
+
+
+%settings here
+basefreq =30;                      %hz
+numcycles = 2;                      %number of periods to capture
+
+numcycles_output = 10;
+
+amplitude = 1;                      %volts
+samples_per_second = 20000;          %samples/sec
+dt = 1/samples_per_second;          %time per sample
+T = 1/basefreq;                     %time per period
+t_all = 0:dt:T-dt;                  %create a time vector for one period
+samples_per_cycle = length(t_all);  %number of samples in a period (integer)
+
+%set number of channels here
+number_output_channels = 2;
+number_input_channels = 2;
+
+%create input and output objects
+ao = analogoutput('nidaq','Dev2');
+ai = analoginput('nidaq','Dev1');
+
+%new properties
+set(ai,'InputType','SingleEnded')
+set(ai,'TriggerType','HwDigital')
+set(ai,'TriggerCondition','PositiveEdge');
+
+%set up channels
+chanout = addchannel(ao, (1:number_output_channels)-1);
+chanin = addchannel(ai, (1:number_input_channels)-1);
+
+
+%set sample rates
+ao.SampleRate = samples_per_second;
+ai.SampleRate = samples_per_second;
+ai.SamplesPerTrigger = numcycles*samples_per_cycle;
+
+%create outputs
+u = amplitude*sin(2*pi*basefreq*t_all);
+u_ao = repmat(u',[5,1]);
+clock = 0*u_ao;
+clock(samples_per_cycle) = 5;
+
+%put output data in buffer
+putdata(ao,[u_ao,clock])
+
+
+
+
+start(ai);
+start(ao);
+wait(ai,20)
+
+
+Treal = samples_per_cycle/samples_per_second;
+data = getdata(ai);
+mean_data = mean(data(:,1));
+t_plot = 0:dt:numcycles*
+t_plot = t_plot';
+
+figure(1)
+subplot(1,2,1)
+plot(t_plot,100*(data(:,1)-mean_data),t_plot,10*data(:,2),t_plot,10*output1(1:size(t_plot,1)),'-','linewidth',2);
+title('Acceleration and Normalized Control Voltage Plot')
+legend('Bar Acceleration (m/s^2)','10*Control Voltage (V)','10*Expected Control Voltage')
+xlabel('Time (s)')
+
+subplot(1,2,2)
+plot(t,output1,t,outputclock/5,'linewidth',2);
+title('Output Vectors')
+legend('Driving Voltage Output','Normalized Trigger Output)')
+ylabel('Voltage')
+xlabel('Time (s)')

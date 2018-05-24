@@ -1,0 +1,122 @@
+function handles = load_handles(handles)
+
+filenames = get(handles.savedhandles,'String');
+selectedfile = filenames{get(handles.savedhandles,'Value')}; 
+
+%load selected plate motion file into current handles.  The variable H that
+%the file is loaded into has fields plateinfo, daqinfo, and signalinfo
+H = load([cd,'\SavedHandles',selectedfile]);
+
+%make sure basefreq of loaded plate motion is in Gnfreqs
+Gnfreqs = handles.controllerinfo.Gnfreqs;
+controlledfreqs = handles.controllerinfo.controlledfreqs;
+basefreq = H.platemotion.basefreq;
+if isempty(find(basefreq == Gnfreqs))
+    warndlg(['Plate motion cannot be loaded because nso frequency response data exists for ',num2str(basefreq),'Hz base frequency.'])
+    uiwait
+else
+    handles.plateinfo = H.plateinfo;
+    handles.daqinfo = H.daqinfo;
+    handles.signalinfo = H.signalinfo;
+    
+    %make sure controlled frequencies are all in Gnfreqs
+    if controlledfreqs(end) > Gnfreqs(end)
+        handles.controllerinfo.controlledfreqs = basefreq:basefreqs:Gnfreqs(end);
+        handles.controllerinfo.maxharmonic = numel(handles.controllerinfo.controlledfreqs);
+        warndlg(['Controlled frequencies changed from ',mat2str(controlledfreqs),' to ',mat2str(handles.controllerinfo.controlledfreqs),' because frequency response data only goes to ',num2str(Gnfreqs(end)),'Hz'])
+    end
+
+    platesignals = handles.globalinfo.platesignals;
+
+    %update plate motion panel in GUI
+    set(handles.constants,'string',handles.plateinfo.constants)
+    set(handles.basefreq,'string',num2str(handles.plateinfo.basefreq))
+    for i = 1:numel(platesignals)
+        set(eval(['handles.',platesignals{i}]),'string',handles.plateinfo.d_char{i})
+    end
+    
+    %update sampling panel in GUI
+    set(handles.samples_per_second,'string',num2str(handles.daqinfo.samples_per_second))
+    set(handles.samples_per_cycle,'string',num2str(handles.plateinfo.samples_per_cycle))
+    set(handles.num_transient_cycles,'string','num2str(handles.daqinfo
+    
+    %update control signals panel in GUI
+    set(handles.controlledfreqs,'string',mat2str(handles.controllerinfo.controlledfreqs))
+    set(handles.maxharmonic,'string',num2str(handles.controllerinfo.maxharmonic))
+    
+    %update speaker signals panel in GUI
+    
+    %update plate signals panel in GUI
+    
+
+end
+
+
+%plotspakers
+%plotplate
+
+
+
+
+
+basefreq = handles.plateinfo.basefreq;
+Gnfreqs = handles.controllerinfo.Gnfreqs;
+dt = handles.plateinfo.dt;
+samples_per_second = handles.daqinfo.samples_per_second;
+samples_per_cycle = handles.plateinfo.samples_per_cycle;
+platesignals = handles.globalinfo.platesignals;
+speakersignals = handles.globalinfo.speakersignals;
+
+%first make sure dt of plate motion equals 1/samples_per_second used by
+%controller.  if not, set samples_per_second to 1/dt from plate motion file
+if dt ~= 1/samples_per_second
+    samples_per_second = round(1/dt);
+    warndlg(['samples_per_second will be reset to ',num2str(samples_per_second),' to match saved plate motion.'])
+    uiwait
+    handles.daqinfo.samples_per_second = samples_per_second;
+    set(handles.samples_per_second,'String',num2str(samples_per_second))
+end
+    
+%now make sure that base frequency of plate motion is in Gnfreqs
+if isempty(find(basefreq == Gnfreqs))
+    %determine closest allowable base frequency
+    [val ind] = min(abs(basefreq - Gnfreqs));
+    basefreq = Gnfreqs(ind);
+    warndlg(['No frequency response data exists for base frequency of desired plate motion.  Base frequency will be set to ',num2str(basefreq),'Hz.'])
+    uiwait
+    handles.plateinfo.basefreq = basefreq;
+    set(handles.basefreq,'String',num2str(basefreq))
+    T = 1/basefreq;
+    handles.plateinfo.T = T;
+    t_all = 0:dt:T-dt;
+    handles.plateinfo.t_all = t_all;
+    samples_per_cycle = length(t_all);
+    handles.plateinfo.samples_per_cycle = samples_per_cycle;
+    set(handles.samples_per_cycle,'String',num2str(samples_per_cycle))
+end
+
+
+
+%set accelerations for speakers equal to zero
+for i = 1:numel(speakersignals)
+    eval(['handles.controllerinfo.y.sp',num2str(i),' = zeros(1,samples_per_cycle);'])
+    %example of line above
+    %handles.controllerinfo.y.sp1 = zeros(1,samples_per_cycle);
+end
+
+%set values in GUI
+set(handles.platemotionfilename,'string',handles.plateinfo.filename)
+set(handles.basefreq,'String',num2str(handles.plateinfo.basefreq))
+set(handles.samples_per_cycle,'string',num2str(handles.plateinfo.samples_per_cycle));
+set(handles.constants,'String',handles.plateinfo.constants)
+for i = 1:numel(platesignals)
+    eval(['set(handles.',platesignals{i},',''string'',handles.plateinfo.d.',platesignals{i},'_char)'])
+    %example of line above:
+    %set(handles.pddx,'string',handles.plateinfo.d.pddx_char)
+end
+
+%plot u and d
+%initialize plots
+handles = updateplateinfo(handles);
+PlotSpeakers(handles)
+PlotPlate(handles)

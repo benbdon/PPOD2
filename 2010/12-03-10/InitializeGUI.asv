@@ -1,0 +1,127 @@
+function handles = InitializeGUI(handles)
+
+aiConfig = get(get(handles.AnalogInputModeSelector,'selectedObject'),'tag');
+aoConfig = get(get(handles.AnalogOutputModeSelector,'selectedObject'),'tag');
+
+%**************************************************************************
+%UPDATE GUI PANELS
+%**************************************************************************
+%Analog Input Mode panel
+set(handles.standardModeAI,'enable','on');
+set(handles.forceModeAI,'enable','on');
+
+%Analog Output Mode panel in GUI
+set(handles.standardModeAO,'enable','on')
+set(handles.cameraModeAO,'enable','on')
+if handles.camerainfo.fps > 20
+    handles.camerainfo.fps = 15;
+end
+if strcmp(aoConfig,'cameara')
+    set(handles.fps,'string',num2str(handles.camerainfo.fps),'enable','on')
+else
+    set(handles.fps,'string',num2str(handles.camerainfo.fps),'enable','off')
+end
+
+%Sampling panel
+set(handles.samplingFreq,'string',num2str(handles.signalinfo.samplingFreq),'enable','on')
+set(handles.samplesPerCycle,'string',num2str(handles.signalinfo.samplesPerCycle),'enable','on')
+set(handles.numTransientCycles,'string',num2str(handles.controllerinfo.numTransientCycles),'enable','on')
+set(handles.numCollectedCycles,'string',num2str(handles.controllerinfo.numCollectedCycles),'enable','on')
+set(handles.numProcessingCycles,'string',num2str(handles.controllerinfo.numProcessingCycles),'enable','on')
+set(handles.cyclesPerUpdate,'string',num2str(handles.controllerinfo.cyclesPerUpdate),'enable','on')
+set(handles.timePerUpdate,'string',num2str(handles.controllerinfo.cyclesPerUpdate*handles.signalinfo.T),'enable','on')
+
+%Controller Parameters panel
+set(handles.uiHarmonics,'string',mat2str(handles.controllerinfo.uiHarmonics),'enable','on')
+set(handles.F_ui,'string',[mat2str(handles.controllerinfo.F_ui),' Hz'],'enable','on')
+set(handles.useNonlinearHarmonicTerms,'enable','on')
+set(handles.k,'string',num2str(handles.controllerinfo.k),'enable','on')
+set(handles.uMax,'string',num2str(handles.controllerinfo.uMax),'enable','on')
+if get(handles.desSignals_ui,'value')
+    set(handles.uiInitial_previous,'enable','off')
+    set(handles.uiInitial_guess,'enable','off')
+    set(handles.uiInitial_zero,'enable','off')
+    set(handles.uiInitial_user','enable','on')
+else
+    set(handles.uiInitial_previous,'enable','on')
+    set(handles.uiInitial_guess,'enable','on')
+    set(handles.uiInitial_zero,'enable','on')
+    set(handles.uiInitial_user','enable','off')
+end
+    
+%Desired Signals panel
+set(handles.desSignals_Pdd,'enable','on')%sets initial desired signal type to plate acclerations
+set(handles.desSignals_didd,'enable','on')
+set(handles.desSignals_ui,'enable','on')
+set(handles.platemotionfilename,'string',handles.globalinfo.filename)
+set(handles.T,'string',char(sym(handles.signalinfo.T)),'enable','on')
+switch get(get(handles.desSignalsSelector,'selectedObject'),'tag')
+    case 'desSignals_Pdd'
+        for i = 1:numel(handles.globalinfo.PddSignals)
+            set(eval(['handles.desSignalText',num2str(i)]),'string',[handles.globalinfo.PddSignals{i},' = '],'enable','on')
+            set(eval(['handles.desSignalChar',num2str(i)]),'string',handles.signalinfo.PddDesChar{i},'enable','on')
+        end
+    case 'desSignals_didd'
+        for i = 1:numel(handles.globalinfo.diddSignals)
+            set(eval(['handles.desSignalText',num2str(i)]),'string',[handles.globalinfo.diddSignals{i},' = '],'enable','on')
+            set(eval(['handles.desSignalChar',num2str(i)]),'string',handles.signalinfo.diddDesChar{i},'enable','on')
+        end
+    case 'desSignals_ui'
+        for i = 1:numel(handles.globalinfo.uiSignals)
+            set(eval(['handles.desSignalText',num2str(i)]),'string',[handles.globalinfo.uiSignals{i},' = '],'enable','on')
+            set(eval(['handles.desSignalChar',num2str(i)]),'string',handles.signalinfo.uiDesChar{i},'enable','on')
+        end
+end
+%disable unused text boxes
+for j = i+1:6
+    set(eval(['handles.desSignalText',num2str(j)]),'string','','enable','off')
+    set(eval(['handles.desSignalChar',num2str(j)]),'string','','enable','off')
+end
+
+set(handles.constants,'string',handles.signalinfo.constants,'enable','on')
+set(handles.savedhandles_listbox','enable','on')
+load_listbox(handles) %load saved plate motions
+
+%Actuation panel
+set(handles.maxUpdate,'string',num2str(handles.controllerinfo.maxUpdate),'enable','on')
+set(handles.currentUpdate,'string',num2str(handles.controllerinfo.currentUpdate),'enable','on')
+set(handles.run,'value',0,'enable','on')
+
+%Frequency Response panel
+set(handles.uiAddFreqs,'value',0,'enable','on')
+set(handles.uiDeleteFreqs,'value',0,'enable','on')
+set(handles.diddAddFreqs,'value',0,'enable','on')
+set(handles.diddDeleteFreqs,'value',0,'enable','on')
+set(handles.diddErrorTol,'string',num2str(0.0015),'enable','on')
+set(handles.maxUpdatediddAddFreqs,'string',20,'enable','on')
+set(handles.currentUpdatediddAddFreqs,'string',num2str(handles.controllerinfo.currentUpdate))
+set(handles.PddAddFreqs,'value',0,'enable','on')
+set(handles.PddDeleteFreqs,'value',0,'enable','on')
+set(handles.PddErrorTol,'string',num2str(0.025),'enable','on')
+set(handles.maxUpdatePddAddFreqs,'string',20,'enable','on')
+set(handles.currentUpdatePddAddFreqs,'string',num2str(handles.controllerinfo.currentUpdate))
+set(handles.viewTransferFunctions,'enable','on')
+
+%Control Signals panel
+
+%Signal Plots panel
+set(handles.plottedSignals_Pdd)%selects plate acceleration for initial plots
+set(handles.timeDomain,'Value',1)%selects time domain for initial plots
+set(handles.plottedHarmonics,'string',['[0:',num2str(max(5,max(handles.controllerinfo.uiHarmonics)*2)),']'],'enable','off')
+set(handles.plottedHarmonicsText,'enable','off')
+set(handles.currentError,'string','')
+set(handles.updatePlots,'value',1)
+
+%update Force Signals panel in GUi
+set(handles.forceSignalsPanel,'visible','off')
+
+%update Laser Signals panel in GUI
+set(handles.laserSignalsPanel,'visible','off')
+
+%initialize plots
+InitializePlotControlSignals(handles);
+InitializePlotAccSignals(handles);
+if strcmp(handles.globalinfo.aiConfig,'force')
+    InitializePlotForceSignals(handles);
+    InitializePlotLaserSignals(handles);
+end

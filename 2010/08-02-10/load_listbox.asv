@@ -1,0 +1,18 @@
+function load_listbox(handles)
+
+dir_struct = dir([cd,'\SavedHandles']);
+[sorted_names, sorted_index] = sortrows({dir_struct.name}');
+%get rid of "." and ".." files
+all_file_names = sorted_names(3:end);
+
+%make sure files are of type .mat
+j = 1;
+for i = 1:numel(all_file_names)
+    if ~isempty(strfind(all_file_names{i},'.mat'))
+        file_names{j,1} = all_file_names{i};
+        j = j + 1;
+    end
+end
+
+%displays all files in directory in the list box
+set(handles.savedplatemotions,'String', file_names);

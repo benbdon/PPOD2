@@ -1,0 +1,15 @@
+function [NCS NPMIS NPS NAMIS NDIS NFS] = signalcounter(handles)
+
+NPALS = numel(handles.globalinfo.plateAccLocalSignals);
+NPAS = numel(handles.globalinfo.plateAccSignals);
+NAALS = numel(handles.globalinfo.actuatorAccLocalSignals);
+NAAS = numel(handles.globalinfo.actuatorAccSignals);
+NFS = numel(handles.globalinfo.rawForceSignals);
+NCS = numel(handles.globalinfo.controlSignals);
+
+NCS = numel(handles.globalinfo.controlSignals);
+NPMIS = numel(handles.globalinfo.plateAccLocalSignals);
+NPS = numel(handles.globalinfo.plateAccSignals);
+NAMIS = numel(handles.globalinfo.actuatorAccLocalSignals);
+NDIS = numel(handles.globalinfo.actuatorAccSignals);
+NFS = numel(handles.globalinfo.rawForceSignals);

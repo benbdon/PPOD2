@@ -1,0 +1,29 @@
+%This function plots the control (green) and acceleration (red) signals
+%corresponding to the speakers.  It does this by updating the lines
+%associated with these signals which are tagged in the
+%InitializeSpeakerPlots function.
+
+function PlotPlate(handles)
+
+platesignals = handles.globalinfo.platesignals;
+y = handles.signalinfo.y;
+d = handles.signalinfo.d;
+t_all = handles.plateinfo.t_all;
+
+%find handles for d and y.  each handles is 
+d_han = findobj('tag','d');
+y_han = findobj('tag','y');
+for i = 1:numel(platesignals)
+    %go to ith axes of speaker signals panel
+    eval(['axes(handles.',platesignals{i},'_axes)'])
+
+    %determine handles to d and y line objects in axes so d_han(1)
+    %corresponds to platesignals{end}
+    d_han = d_han(i);
+    y_han = y_han(i);
+    
+    set(d_han,'xdata',t_all,'ydata',d(:,i)) %update d
+    set(y_han,'xdata',t_all,'ydata',y(:,i)) %update y
+    
+    set(gca,'xlim',[0 t_all(end)])
+end
