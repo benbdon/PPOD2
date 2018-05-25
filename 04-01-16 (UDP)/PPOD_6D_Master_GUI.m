@@ -736,7 +736,7 @@ if T ~= handles.signalinfo.T
         set(handles.F_ui,'string',[mat2str(handles.controllerinfo.F_ui),' Hz'])
         
         %update signalinfo
-        [NUIS NPMIDDS NPDDS NAMIDDS NDIDDS NRFS NFS NDIS] = signalCounter(handles); %outputs number of signals
+        [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles); %outputs number of signals
         SPC = handles.signalinfo.samplesPerCycle;
         
         handles.signalinfo.PddCyc = zeros(SPC, NPDDS);%one cycle of plate acceleration data (columns correspond to PddSignals)
