@@ -27,6 +27,7 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
                     switch handles.globalinfo.aiConfig
                         case 'standard'
                             daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,'Voltage');
+                            
                             %daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,1:numInputs,'Voltage');
                         case 'force'
                             daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,'Voltage');
