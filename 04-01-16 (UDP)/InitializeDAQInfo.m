@@ -23,27 +23,27 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
         BoardNames = daq.getDevices();
         for i = 1:length(BoardNames)
             switch BoardNames(i).Model
-                case 'PCI-6323'
+                case 'PCIe-6323'
                     switch handles.globalinfo.aiConfig
                         case 'standard'
                             daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,'Voltage');
-                            
                             %daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,1:numInputs,'Voltage');
                         case 'force'
                             daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,'Voltage');
                             %daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,1:numInputs,'Voltage');
                     end
-                    daqinfo.ai.Name = daqinfo.aiChannelNames;
                 case 'PCI-6713'
                     addAnalogOutputChannel(s,BoardNames(i).ID,0:numOutputs-1,'Voltage');
 %                   daqinfo.ao = addAnalogOutputChannel(s,BoardNames(i).ID,0:numOutputs-1,1:numOutputs,'Voltage');
-                    daqinfo.ao.Name = daqinfo.aoChannelNames;
+                otherwise
+                    print("Unexpected DAQ card")
             end
         end
         
         
         %daq properties
-        daqinfo.ai.TerminalConfig = 'SingleEnded';
+        A(1,1:24)= 'SingleEnded';
+        daqinfo.ai.TerminalConfig = A;
         %set(daqinfo.ai,'InputType','SingleEnded')
         daqinfo.ai = addTriggerConnection(s,'External','Dev1/PFI0','StartTrigger');
         %set(daqinfo.ai,'TriggerType','HwDigital')
@@ -52,7 +52,13 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
         
         %set up channels
         %addchannel(daqinfo.ao, 0:numOutputs-1,daqinfo.aoChannelNames);
-        
+%         switch handles.globalinfo.aiConfig                                                                                                                          -
+%             case 'standard'                                                                                                                                         -
+%                 addchannel(daqinfo.ai, 0:numInputs-1,1:numInputs, daqinfo.aiChan                                                                                     -
+%             case 'force'                                                                                                                                             -
+%                 %addchannel(daqinfo.ai, [0:7,18:23,26:31],1:numInputs,daqinfo.ai                                                                                     -
+%                 addchannel(daqinfo.ai, 0:numInputs-1,1:numInputs, daqinfo.aiChan                                                                                     -
+%         end               
         
         %set sample rates
         samplingFreq = handles.signalinfo.samplingFreq;

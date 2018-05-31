@@ -3,6 +3,7 @@
 
 %Create a session
 s = daq.createSession('ni');
+s.Rate=8000;
 %Adding an Output Channel (session, deviceID, measurementType)
 
 %
