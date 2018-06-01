@@ -4,13 +4,16 @@
 %Create a session
 s = daq.createSession('ni');
 s.Rate=8000;
-%Adding an Output Channel (session, deviceID, measurementType)
 
-%
-addAnalogOutputChannel(s,'Dev1', 'ao6', 'Voltage');
+ch = addAnalogOutputChannel(s,'Dev1', 'ao6', 'Voltage');
+ch.Name = 'Command Signal';
+
 ch = addAnalogInputChannel(s, 'Dev2', 'ai23', 'Voltage');
+ch.Name = 'Measurement Signal';
 ch.TerminalConfig = 'SingleEnded';
+
 outputSignal = [];
+
 for n = 0:5
     outputSignal = vertcat(outputSignal,n*ones(1000,1));
 end

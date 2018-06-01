@@ -7,7 +7,7 @@ rawForceSignals = handles.globalinfo.rawForceSignals;
 diSignals = handles.globalinfo.diSignals;
 
 %analog output and analog input channel names
-daqinfo.aoChannelNames = ['aiTrig', uiSignals, 'camTrig'];%, 'camTrig'];
+daqinfo.aoChannelNames = ['aiTrig', uiSignals, 'camTrig'];
 daqinfo.aiChannelNames = [pmiddSignals, amiddSignals, rawForceSignals, diSignals];
 
 numOutputs = numel(daqinfo.aoChannelNames);
@@ -24,65 +24,31 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
         for i = 1:length(BoardNames)
             switch BoardNames(i).Model
                 case 'PCIe-6323'
-                    switch handles.globalinfo.aiConfig
-                        case 'standard'
-                            daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,'Voltage');
-                            %daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,1:numInputs,'Voltage');
-                        case 'force'
-                            daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,'Voltage');
-                            %daqinfo.ai = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,1:numInputs,'Voltage');
+                    %add analog input channels to session
+                    ch = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,'Voltage');
+                    
+                    %configure each channel
+                    for i3 = 1:numInputs
+                        ch(i3).Name = daqinfo.aiChannelNames{i3};
+                        ch(i3).Range = [-5, 5];
+                        ch(i3).TerminalConfig = 'SingleEnded';
+                        
                     end
                 case 'PCI-6713'
-                    addAnalogOutputChannel(s,BoardNames(i).ID,0:numOutputs-1,'Voltage');
-%                   daqinfo.ao = addAnalogOutputChannel(s,BoardNames(i).ID,0:numOutputs-1,1:numOutputs,'Voltage');
+                    %add analog output channels to session
+                    ch = addAnalogOutputChannel(s,BoardNames(i).ID,0:numOutputs-1,'Voltage');
+                    
+                    %configure each channel
+                    for i2 = 1:numOutputs
+                        ch(i2).Name = daqinfo.aoChannelNames{i2};
+                    end
                 otherwise
-                    print("Unexpected DAQ card")
+                    disp("Unexpected DAQ card")
             end
         end
-        
-        
-        %daq properties
-        A(1,1:24)= 'SingleEnded';
-        daqinfo.ai.TerminalConfig = A;
-        %set(daqinfo.ai,'InputType','SingleEnded')
-        daqinfo.ai = addTriggerConnection(s,'External','Dev1/PFI0','StartTrigger');
-        %set(daqinfo.ai,'TriggerType','HwDigital')
-        s.Connections(1).TriggerCondition = 'RisingEdge';
-        %set(daqinfo.ai,'TriggerCondition','PositiveEdge');
-        
-        %set up channels
-        %addchannel(daqinfo.ao, 0:numOutputs-1,daqinfo.aoChannelNames);
-%         switch handles.globalinfo.aiConfig                                                                                                                          -
-%             case 'standard'                                                                                                                                         -
-%                 addchannel(daqinfo.ai, 0:numInputs-1,1:numInputs, daqinfo.aiChan                                                                                     -
-%             case 'force'                                                                                                                                             -
-%                 %addchannel(daqinfo.ai, [0:7,18:23,26:31],1:numInputs,daqinfo.ai                                                                                     -
-%                 addchannel(daqinfo.ai, 0:numInputs-1,1:numInputs, daqinfo.aiChan                                                                                     -
-%         end               
-        
-        %set sample rates
-        samplingFreq = handles.signalinfo.samplingFreq;
-        s.Rate = samplingFreq;
-%       daqinfo.ao.SampleRate = samplingFreq;
-%       daqinfo.ai.SampleRate = samplingFreq;
-%         
-        %set range of input voltages
-        daqinfo.Range = [-5, 5];
-%       daqinfo.ai.Channel.InputRange = [-5, 5];
-        if ~isempty(diSignals)
-            daqinfo.ai.Channel.InputRange(end) = [-10 10];
-        end
-    else
-        disp('NI DAQ cards not found')
-        daqinfo.ao = [];
-        daqinfo.ai = [];
-        daqinfo.ao.SampleRate = [];
-        daqinfo.ai.SampleRate = [];
-    end
-else
-    disp('Data acquisition toolbox not installed')
-    daqinfo.ao = [];
-    daqinfo.ai = [];
-    daqinfo.ao.SampleRate = [];
-    daqinfo.ai.SampleRate = [];
+    end 
 end
+
+%config trigger
+addTriggerConnection(s,'External','Dev2/PFI0','StartTrigger');
+
