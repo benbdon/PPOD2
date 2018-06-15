@@ -229,7 +229,6 @@ size(clock)
 size(uiN)
 size(camTrigN)
 
-%putdata(handles.daqinfo.ao, [clock, uiN, camTrigN])
 queueOutputData(handles.daqinfo.s,[clock, uiN, camTrigN])
 %start analog intput device (set to log during trigger event and then stops
 %once data has been logged) & start analog output device (sends out data immediately)
@@ -301,7 +300,7 @@ while currentUpdate < maxUpdate
     while get(handles.daqinfo.ai,'SamplesAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))
         
         if strcmp(get(handles.daqinfo.ai,'running'),'On') && get(handles.daqinfo.ao,'samplesavailable') < SPC*N
-            putdata(handles.s, [clock, uiN, camTrigN])
+            queueOutputData(handles.s, [clock, uiN, camTrigN])
             if strcmp(get(handles.daqinfo.ao,'Running'), 'Off') 
                 disp(['update ',num2str(currentUpdate),': ao turned off--increase N'])
                 start(handles.daqinfo.ao)
@@ -612,11 +611,11 @@ while currentUpdate < maxUpdate
     %**********************************************************************
     %**********************************************************************
     %put new output signals into queue
-    putdata(handles.s, [clock, uiN, camTrigN])
+    queueOutputData(handles.s, [clock, uiN, camTrigN])
     if strcmp(get(handles.daqinfo.ao,'Running'), 'Off')
         disp(['update ',num2str(currentUpdate),': ao turned off--increase N (end of loop)'])
         while get(handles.daqinfo.ao,'samplesavailable') < SPC
-            putdata(handles.s, [clock, uiN, camTrigN])
+            queueOutputData(handles.s, [clock, uiN, camTrigN])
         end
         start(handles.daqinfo.ao)
     end
