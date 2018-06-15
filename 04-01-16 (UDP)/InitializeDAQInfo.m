@@ -31,9 +31,9 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
                     for i3 = 1:numInputs
                         ch(i3).Name = daqinfo.aiChannelNames{i3};
                         ch(i3).Range = [-5, 5];
-                        ch(i3).TerminalConfig = 'SingleEnded';
-                        
+                        ch(i3).TerminalConfig = 'SingleEnded';  
                     end
+                    daqinfo.ai = ch;
                 case 'PCI-6713'
                     %add analog output channels to session
                     ch = addAnalogOutputChannel(s,BoardNames(i).ID,0:numOutputs-1,'Voltage');
@@ -42,6 +42,7 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
                     for i2 = 1:numOutputs
                         ch(i2).Name = daqinfo.aoChannelNames{i2};
                     end
+                    daqinfo.ao = ch;
                 otherwise
                     disp("Unexpected DAQ card")
             end
@@ -49,6 +50,9 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
     end 
 end
 
+%set sample rates
+samplingFreq = handles.signalinfo.samplingFreq;
+s.Rate = samplingFreq;
 %config trigger
-addTriggerConnection(s,'External','Dev2/PFI0','StartTrigger');
-
+%addTriggerConnection(s,'External','Dev2/PFI0','StartTrigger');
+daqinfo.s = s;

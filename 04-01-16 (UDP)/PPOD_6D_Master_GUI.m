@@ -1590,7 +1590,7 @@ function analogInputModeSelector_SelectionChangeFcn(hObject, eventdata, handles)
 %	NewValue: handle of the currently selected object
 % handles    structure with handles and user data (see GUIDATA)
 
-handles = InitializeHandles(handles);
+[handles,s] = InitializeHandles(handles);
 InitializeGUI(handles)
 
 guidata(hObject, handles)
@@ -1890,7 +1890,7 @@ function resetDAQ_Callback(hObject, eventdata, handles)
 
 %SHOULD MODIFY SO THAT controlled harmomics stays the smae
 
-handles = InitializeHandles(handles);
+[handles,s] = InitializeHandles(handles);
 
 InitializeGUI(handles);
 guidata(hObject,handles)

@@ -1,4 +1,4 @@
-function handles = InitializeHandles(handles)
+function [handles,s] = InitializeHandles(handles)
 
 aiConfig = get(get(handles.analogInputModeSelector,'selectedObject'),'tag');
 aoConfig = get(get(handles.analogOutputModeSelector,'selectedObject'),'tag');
