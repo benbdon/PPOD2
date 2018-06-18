@@ -57,7 +57,7 @@ T_LS2W = handles.calibrationinfo.T_LS2W;
 V_per_ms2 = handles.calibrationinfo.V_per_ms2;
 
 %specify how many samples to collect upon trigger
-%handles.daqinfo.ai.SamplesPerTrigger = NCC*SPC;
+handles.daqinfo.ai.SamplesPerTrigger = NCC*SPC;
 
 F_ui = handles.controllerinfo.F_ui;
 F_ui_all = handles.controllerinfo.F_ui_all;
@@ -232,6 +232,7 @@ size(camTrigN)
 queueOutputData(handles.daqinfo.s,[clock, uiN, camTrigN])
 %start analog intput device (set to log during trigger event and then stops
 %once data has been logged) & start analog output device (sends out data immediately)
+%lh = addListener(handles.daqinfo.s,'DataAvailable')
 a = handles.daqinfo.s.startForeground;
 
 currentUpdate = 0;
@@ -297,8 +298,7 @@ while currentUpdate < maxUpdate
     %the data is logged)
     pause(.1)
 
-    while get(handles.daqinfo.ai,'SamplesAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))
-        
+    while get(handles.daqinfo.ai,'SamplesAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))  
         if strcmp(get(handles.daqinfo.ai,'running'),'On') && get(handles.daqinfo.ao,'samplesavailable') < SPC*N
             queueOutputData(handles.s, [clock, uiN, camTrigN])
             if strcmp(get(handles.daqinfo.ao,'Running'), 'Off') 
@@ -309,7 +309,7 @@ while currentUpdate < maxUpdate
                 button = questdlg('Analog output card ran out of samples in queue.  Number of processing cycles should be increased.  Do you wish to continue operating?');
                 switch button
                     case {'No','Cancel'}
-                        stop(handles.daqinfo.ai)
+                        stop(handles.daqinfo.s)
                         set(handles.run,'value',0,'string','Run')
                         set(handles.samplingFreq,'enable','on')
                         set(handles.numCollectedCycles,'enable','on')

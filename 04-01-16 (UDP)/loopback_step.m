@@ -1,9 +1,11 @@
 %This function does a loopback test using a stairstep from 0 - 5 (step size
 %of 1) as an output from ao6 and measures it back on channel ai23.
 
+daqreset
+
 %Create a session
 s = daq.createSession('ni');
-s.Rate=8000;
+s.Rate=10000;
 
 ch = addAnalogOutputChannel(s,'Dev1', 'ao6', 'Voltage');
 ch.Name = 'Command Signal';
@@ -12,15 +14,11 @@ ch = addAnalogInputChannel(s, 'Dev2', 'ai23', 'Voltage');
 ch.Name = 'Measurement Signal';
 ch.TerminalConfig = 'SingleEnded';
 
-outputSignal = [];
-
-for n = 0:5
-    outputSignal = vertcat(outputSignal,n*ones(1000,1));
-end
-outputSignal = vertcat(outputSignal,zeros());
+%Generate Sample Data (linear 0 to 5V ending back at zero
+outputSignal = [linspace(0,5,50000)';0];
 queueOutputData(s,outputSignal);
 data = startForeground(s);
-disp(s)
+
 plot(outputSignal)
 hold on
 plot(data)
