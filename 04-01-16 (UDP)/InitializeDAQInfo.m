@@ -19,13 +19,14 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
         %create input and output objects
         %AI: PCI-6323, analog input board 32 channels
         %AO: PCI-6713, analog output board
-        s = daq.createSession('ni');
+        
         BoardNames = daq.getDevices();
         for i = 1:length(BoardNames)
             switch BoardNames(i).Model
                 case 'PCIe-6323'
                     %add analog input channels to session
-                    ch = addAnalogInputChannel(s,BoardNames(i).ID,0:numInputs-1,'Voltage');
+                    sAI = daq.createSession('ni');
+                    ch = addAnalogInputChannel(sAI,BoardNames(i).ID,0:numInputs-1,'Voltage');
                     
                     %configure each channel
                     for i3 = 1:numInputs
@@ -35,8 +36,9 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
                     end
                     daqinfo.ai = ch;
                 case 'PCI-6713'
+                    sAO = daq.createSession('ni');
                     %add analog output channels to session
-                    ch = addAnalogOutputChannel(s,BoardNames(i).ID,0:numOutputs-1,'Voltage');
+                    ch = addAnalogOutputChannel(sAO,BoardNames(i).ID,0:numOutputs-1,'Voltage');
                     
                     %configure each channel
                     for i2 = 1:numOutputs
@@ -52,7 +54,9 @@ end
 
 %set sample rates
 samplingFreq = handles.signalinfo.samplingFreq;
-s.Rate = samplingFreq;
-%config trigger
-%addTriggerConnection(s,'External','Dev2/PFI0','StartTrigger');
-daqinfo.s = s;
+sAI.Rate = samplingFreq;
+sAO.Rate = samplingFreq;
+
+%add sessions to the handle
+daqinfo.sAI = sAI;
+daqinfo.sAO = sAO;

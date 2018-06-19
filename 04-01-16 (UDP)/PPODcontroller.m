@@ -57,7 +57,7 @@ T_LS2W = handles.calibrationinfo.T_LS2W;
 V_per_ms2 = handles.calibrationinfo.V_per_ms2;
 
 %specify how many samples to collect upon trigger
-handles.daqinfo.ai.SamplesPerTrigger = NCC*SPC;
+handles.daqinfo.sAI.DurationInSeconds = 4; %CHECK THIS
 
 F_ui = handles.controllerinfo.F_ui;
 F_ui_all = handles.controllerinfo.F_ui_all;
@@ -229,11 +229,14 @@ size(clock)
 size(uiN)
 size(camTrigN)
 
-queueOutputData(handles.daqinfo.s,[clock, uiN, camTrigN])
+queueOutputData(handles.daqinfo.sAO,[clock, uiN, camTrigN])
 %start analog intput device (set to log during trigger event and then stops
-%once data has been logged) & start analog output device (sends out data immediately)
-%lh = addListener(handles.daqinfo.s,'DataAvailable')
-a = handles.daqinfo.s.startForeground;
+%once data has been logged)
+handles.daqinfo.sAI.startBackground;
+
+%start analog output device (sends out data immediately)
+lh = addListener(handles.daqinfo.s,'DataAvailable')
+handles.daqinfo.sAO.startBackground;
 
 currentUpdate = 0;
 set(handles.currentUpdate,'string',num2str(currentUpdate))
@@ -253,16 +256,16 @@ while currentUpdate < maxUpdate
     switch handles.globalinfo.mode
         case {'PddControl','diddControl','uiControl'}
             set(handles.currentUpdate,'string',num2str(currentUpdate))
-            if ~get(handles.run,'value');
+            if ~get(handles.run,'value')
                 break
             end
         case 'uiAddFreqs'
-            if ~get(handles.uiAddFreqs,'value');
+            if ~get(handles.uiAddFreqs,'value')
                 break
             end
         case 'diddAddFreqs'
             set(handles.currentUpdatediddAddFreqs,'string',num2str(currentUpdate))
-            if ~get(handles.diddAddFreqs,'value');
+            if ~get(handles.diddAddFreqs,'value')
                 NPC = NPCold;
                 N = NTC + NCC + NPC;
                 handles.controllerinfo.numProcessingCycles = NPC;
@@ -285,7 +288,7 @@ while currentUpdate < maxUpdate
             end
         case 'PddAddFreqs'
             set(handles.currentUpdatePddAddFreqs,'string',num2str(currentUpdate))
-            if ~get(handles.PddAddFreqs,'value');
+            if ~get(handles.PddAddFreqs,'value')
                 break
             end
             errorTol = eval(get(handles.PddErrorTol,'string'));
@@ -300,7 +303,7 @@ while currentUpdate < maxUpdate
 
     while get(handles.daqinfo.ai,'SamplesAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))  
         if strcmp(get(handles.daqinfo.ai,'running'),'On') && get(handles.daqinfo.ao,'samplesavailable') < SPC*N
-            queueOutputData(handles.s, [clock, uiN, camTrigN])
+            queueOutputData(handles.saAO, [clock, uiN, camTrigN])
             if strcmp(get(handles.daqinfo.ao,'Running'), 'Off') 
                 disp(['update ',num2str(currentUpdate),': ao turned off--increase N'])
                 start(handles.daqinfo.ao)

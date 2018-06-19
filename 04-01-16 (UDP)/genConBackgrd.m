@@ -28,7 +28,6 @@ startBackground(s);
 
 %await keypress
 pause();
-disp(s.ScansQueued)
-measured = startForeground(sAI);
+[data,timestamps] = startForeground(sAI);
 delete(lhAO)
-plot(measured)
+plot(timestamps,data)
