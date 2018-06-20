@@ -188,8 +188,8 @@ if samplingFreq ~= handles.signalinfo.samplingFreq
     
     %update daqinfo
     handles.signalinfo.samplingFreq = samplingFreq;
-    handles.daqinfo.ai.SampleRate = samplingFreq;
-    handles.daqinfo.ao.SampleRate = samplingFreq;
+    handles.daqinfo.sAI.SampleRate = samplingFreq;
+    handles.daqinfo.sAI.SampleRate = samplingFreq;
     
     %update signalinfo
     T = handles.signalinfo.T;
@@ -328,7 +328,7 @@ function savedSignalsListbox_Callback(hObject, eventdata, handles)
 
 handles = loadSavedSignals(handles);
 
-if strcmp(get(handles.daqinfo.ao,'Running'), 'Off')
+if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false)
     %update speaker signals panel in GUI
     PlotControlSignals(handles)
     
@@ -1890,7 +1890,7 @@ function resetDAQ_Callback(hObject, eventdata, handles)
 
 %SHOULD MODIFY SO THAT controlled harmomics stays the smae
 
-[handles,s] = InitializeHandles(handles);
+handles = InitializeHandles(handles);
 
 InitializeGUI(handles);
 guidata(hObject,handles)
@@ -1992,15 +1992,14 @@ function readLaser_Callback(hObject, eventdata, handles)
 % hObject    handle to readLaser (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(handles.daqinfo.ai,'triggertype','Immediate')
+
 [NUIS NPMIDDS NPDDS NAMIDDS NDIDDS NRFS NFS NDIS] = signalCounter(handles);
 V2m_LS = handles.calibrationinfo.V2m_LS;
 T_LS2W = handles.calibrationinfo.T_LS2W;
 T = handles.signalinfo.T;
-start(handles.daqinfo.ai)
-wait(handles.daqinfo.ai,2)
-aidata_raw = getdata(handles.daqinfo.ai);
-stop(handles.daqinfo.ai)
+aidata_raw = startForeground(handles.daqinfo.sAI);
+wait(handles.daqinfo.sAI,2)
+stop(handles.daqinfo.sAI)
 diInit = T_LS2W*mean(aidata_raw(:,NPMIDDS+NAMIDDS+NRFS+1:NPMIDDS+NAMIDDS+NRFS+NDIS))*V2m_LS - .045;
 handles.calibrationinfo.diInit = diInit;
 set(findobj('tag','diInit'), 'xdata',[0 T],'ydata',[diInit diInit])
@@ -2013,9 +2012,8 @@ if diInit > ylim(2)
 end
 set(handles.laserAxes,'ylim',ylim)
 
-set(handles.daqinfo.ai,'triggertype','HwDigital')
+%set(handles.daqinfo.sAI,'triggertype','HwDigital')
 guidata(hObject,handles)
-
 
 % --- Executes on selection change in signalPanel2Selector.
 function signalPanel2Selector_Callback(hObject, eventdata, handles)
