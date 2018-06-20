@@ -6,7 +6,6 @@ s = daq.createSession('ni');
 sAI = daq.createSession('ni');
 s.Rate=1000;
 sAI.Rate=1000;
-sAI.DurationInSeconds = 2;
 
 ch = addAnalogOutputChannel(s,'Dev1', 'ao6', 'Voltage');
 ch.Name = 'Command Signal';
