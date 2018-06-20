@@ -10,11 +10,6 @@ ch.TerminalConfig = 'SingleEnded';
 addTriggerConnection(sAI,'External','Dev2/PFI0','StartTrigger');
 sAI.Connections(1).TriggerCondition = 'RisingEdge';
 
-
-
-
-
-
 %'Dev1' - PCI-6713 - AO
 sAO = daq.createSession('ni');
 sAO.Rate = 1000;
