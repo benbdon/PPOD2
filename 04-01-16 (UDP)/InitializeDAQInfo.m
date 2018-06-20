@@ -34,7 +34,11 @@ if license('test','data_acq_toolbox')%check to make sure data acquisition toolbo
                         ch(i3).Range = [-5, 5];
                         ch(i3).TerminalConfig = 'SingleEnded';  
                     end
-                    daqinfo.ai = ch;
+                    
+                    %trigger properties
+                    addTriggerConnection(sAI,'External','Dev2/PFI0','StartTrigger');
+                    sAI.Connections(1).TriggerCondition = 'RisingEdge';
+  
                 case 'PCI-6713'
                     sAO = daq.createSession('ni');
                     %add analog output channels to session
@@ -56,7 +60,7 @@ end
 samplingFreq = handles.signalinfo.samplingFreq;
 sAI.Rate = samplingFreq;
 sAO.Rate = samplingFreq;
-
+sAO.IsContinuous = true;
 %add sessions to the handle
 daqinfo.sAI = sAI;
 daqinfo.sAO = sAO;
