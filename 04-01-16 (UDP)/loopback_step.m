@@ -7,30 +7,41 @@
 %reset all DAQ settings (just in case)
 daqreset
 
-%Create a session
+%'Dev2' - PCIe-6323 - AI
 sAI = daq.createSession('ni');
-sAO = daq.createSession('ni');
-sAI.Rate = 10000;
-sAO.Rate = 10000;
-
-ch = addAnalogOutputChannel(sAO,'Dev1', 'ao6', 'Voltage');
-ch.Name = 'Command Signal';
-
+sAI.Rate = 1000;
 ch = addAnalogInputChannel(sAI, 'Dev2', 'ai23', 'Voltage');
 ch.Name = 'Measurement Signal';
 ch.TerminalConfig = 'SingleEnded';
 
-%Generate Sample Data (linear 0 to 5V ending back at zero
-outputSignal = [linspace(0,5,9999)';0];
-queueOutputData(sAO,outputSignal);
-d = startBackground(sAO);
+addTriggerConnection(sAI,'External','Dev2/PFI0','StartTrigger');
+sAI.Connections(1).TriggerCondition = 'RisingEdge';
+
+%'Dev1' - PCI-6713 - AO
+sAO = daq.createSession('ni');
+sAO.Rate = 10000;
+
+ch = addAnalogOutputChannel(sAO,'Dev1', 'ao0', 'Voltage');
+ch.Name = 'clock';
+clock = zeros(2000,1);
+clock(1000,1) = 5;
+
+ch = addAnalogOutputChannel(sAO,'Dev1', 'ao6', 'Voltage');
+ch.Name = 'signal';
+signal = [linspace(0,1,1999)';0];
+
+%Queue up the output
+queueOutputData(sAO,[clock,signal])
+startBackground(sAO);
 [measured_data,timestamps] = startForeground(sAI);
 
-plot(timestamps,measured_data)
+plot(timestamps+1,measured_data)
 hold on
-plot(timestamps,outputSignal)
+time = linspace(0,2,2000)';
+plot(time,signal)
 xlabel('Time');
 ylabel('Voltage');
-legend('measured data','outputSignal')
-stop(s);
+legend('measured data','signal')
+stop(sAO);
+stop(sAI);
 disp('Done')
