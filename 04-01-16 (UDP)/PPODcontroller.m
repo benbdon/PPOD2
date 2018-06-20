@@ -1,6 +1,6 @@
 function handles = PPODcontroller(handles)
 
-[NUIS NPMIDDS NPDDS NAMIDDS NDIDDS NRFS NFS NDIS] = signalCounter(handles);
+[NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
 
 NTC = eval(get(handles.numTransientCycles,'string'));
 NCC = eval(get(handles.numCollectedCycles,'string'));
@@ -57,7 +57,7 @@ T_LS2W = handles.calibrationinfo.T_LS2W;
 V_per_ms2 = handles.calibrationinfo.V_per_ms2;
 
 %specify how many samples to collect upon trigger
-handles.daqinfo.sAI.DurationInSeconds = 4; %CHECK THIS
+handles.daqinfo.sAI.NumberOfScans = NCC*SPC;
 
 F_ui = handles.controllerinfo.F_ui;
 F_ui_all = handles.controllerinfo.F_ui_all;
@@ -225,18 +225,23 @@ end
 savedSignalVal = get(handles.savedSignalsListbox,'value');
 
 %put u_ao_init and clock_init into the queue
-size(clock)
-size(uiN)
-size(camTrigN)
+% size(clock)
+% size(uiN)
+% size(camTrigN)
 
-queueOutputData(handles.daqinfo.sAO,[clock, uiN, camTrigN])
-%start analog intput device (set to log during trigger event and then stops
-%once data has been logged)
-handles.daqinfo.sAI.startBackground;
+lhAO = addlistener(handles.daqinfo.sAO,'DataRequired', ...
+    @(src,event) src.queueOutputData([clock, uiN, camTrigN]));
 
 %start analog output device (sends out data immediately)
-lh = addListener(handles.daqinfo.s,'DataAvailable')
-handles.daqinfo.sAO.startBackground;
+queueOutputData(handles.daqinfo.sAO,[clock, uiN, camTrigN]);
+startBackground(handles.daqinfo.sAO); %TODO - foreground or background
+
+%start analog intput device (set to log during trigger event and then stops
+%once data has been logged)
+
+aidata_raw = startForeground(handles.daqinfo.sAI);%TODO - foreground or background
+
+
 
 currentUpdate = 0;
 set(handles.currentUpdate,'string',num2str(currentUpdate))
@@ -299,20 +304,20 @@ while currentUpdate < maxUpdate
     
     %wait for data to be collected from analog input (the device stops once
     %the data is logged)
-    pause(.1)
+    pause(.1) %TODO - this is not good
 
-    while get(handles.daqinfo.ai,'SamplesAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))  
-        if strcmp(get(handles.daqinfo.ai,'running'),'On') && get(handles.daqinfo.ao,'samplesavailable') < SPC*N
-            queueOutputData(handles.saAO, [clock, uiN, camTrigN])
-            if strcmp(get(handles.daqinfo.ao,'Running'), 'Off') 
+    while get(handles.daqinfo.sAI,'ScansAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))  
+        if strcmp(get(handles.daqinfo.sAI,'IsRunning'),true) && get(handles.daqinfo.sAO,'ScansQueued') < SPC*N
+            queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
+            if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false) 
                 disp(['update ',num2str(currentUpdate),': ao turned off--increase N'])
-                start(handles.daqinfo.ao)
+                startBackground(handles.daqinfo.sAO); %TODO - foreground or background
             end
-            if strcmp(get(handles.daqinfo.ao,'Running'), 'Off')
+            if strcmp(get(handles.daqinfo.sAO,'IsRunning'), true)
                 button = questdlg('Analog output card ran out of samples in queue.  Number of processing cycles should be increased.  Do you wish to continue operating?');
                 switch button
                     case {'No','Cancel'}
-                        stop(handles.daqinfo.s)
+                        stop(handles.daqinfo.sAI)
                         set(handles.run,'value',0,'string','Run')
                         set(handles.samplingFreq,'enable','on')
                         set(handles.numCollectedCycles,'enable','on')
@@ -322,7 +327,7 @@ while currentUpdate < maxUpdate
                         set(handles.desSignals_ui,'enable','on')
                         return
                     otherwise
-                        start(handles.daqinfo.ao)
+                        startBackground(handles.daqinfo.sAO); %TODO - foreground or background
                 end
             end
         end
@@ -333,9 +338,8 @@ while currentUpdate < maxUpdate
     if strcmp(handles.globalinfo.mode,'PddControl') && ~get(handles.run,'value')
         break
     end
-    while strcmp(get(handles.daqinfo.ao,'running'),'off')
+    while strcmp(get(handles.daqinfo.sAO,'IsRunning'),false)
     end
-    aidata_raw = getdata(handles.daqinfo.ai);
 
     meanaidata_raw = mean(aidata_raw);
     aidata_meanoffset = aidata_raw - repmat(meanaidata_raw,[size(aidata_raw,1),1]);
@@ -404,7 +408,7 @@ while currentUpdate < maxUpdate
             if rem(currentUpdate,updatespercycle) == updateindices(kk)
                 full_field_name=strcat(fields{kk},'.mat');
                 set(handles.savedSignalsListbox,'Value',find(strncmp(full_field_name,savedfieldnames,length(full_field_name))))
-                [X,Y,Vx Vy] = getfieldvectors(fields{kk});
+                [X,Y,Vx, Vy] = getfieldvectors(fields{kk});
                 quiver(handles.fieldAxes,X,Y,Vx,Vy,0)
                 axis(handles.fieldAxes,'equal')
                 set(handles.fieldAxes,'xlim',[-10 10],'ylim',[-10 10],'xtick',0,'ytick',0)
@@ -420,7 +424,7 @@ while currentUpdate < maxUpdate
             if rem(currentUpdate,updatespercycle) == updateindices(kk)
                 full_field_name=strcat(fields{kk},'.mat');
                 set(handles.savedSignalsListbox,'Value',find(strncmp(full_field_name,savedfieldnames,length(full_field_name))))
-                [X,Y,Vx Vy] = getfieldvectors(fields{kk});
+                [X,Y,Vx, Vy] = getfieldvectors(fields{kk});
                 quiver(handles.fieldAxes,X,Y,Vx,Vy,0)
                 axis(handles.fieldAxes,'equal')
                 set(handles.fieldAxes,'xlim',[-10 10],'ylim',[-10 10],'xtick',0,'ytick',0)
@@ -436,7 +440,7 @@ while currentUpdate < maxUpdate
             if rem(currentUpdate,updatespercycle) == updateindices(kk)
                 full_field_name=strcat(fields{kk},'.mat');
                 set(handles.savedSignalsListbox,'Value',find(strncmp(full_field_name,savedfieldnames,length(full_field_name))))
-                [X,Y,Vx Vy] = getfieldvectors(fields{kk});
+                [X,Y,Vx, Vy] = getfieldvectors(fields{kk});
                 quiver(handles.fieldAxes,X,Y,Vx,Vy,0)
                 axis(handles.fieldAxes,'equal')
                 set(handles.fieldAxes,'xlim',[-10 10],'ylim',[-10 10],'xtick',0,'ytick',0)
@@ -459,8 +463,8 @@ while currentUpdate < maxUpdate
             end
             
             %error in Pdd
-            eNCC_fft = PddDesNCC_fft - PddNCC_fft;
-            eNCC = PddDesNCC - PddNCC;
+            eNCC_fft = PddDesNCC_fft - PddNCC_fft; %TODO -> size doesn't match [2500x6] - [40000x6]
+            eNCC = PddDesNCC - PddNCC; %TODO -> size doesn't match [2500x6] - [40000x6]
             PddDesMax = max(max(handles.signalinfo.PddDesCyc));
             err = sum(sum(eNCC(1:SPC,:).^2))/(samplingFreq*T*PddDesMax^2);
             
@@ -480,7 +484,7 @@ while currentUpdate < maxUpdate
                 err = sum(sum(eNCC(1:SPC,:).^2))/(samplingFreq*T*PddDesMax^2);
                 
                 %empty out queue of old data by just running it down
-                while get(handles.daqinfo.ao,'samplesavailable') > 0
+                while get(handles.daqinfo.sAO,'ScansQueued') > 0
                 end
             end
             
@@ -520,7 +524,7 @@ while currentUpdate < maxUpdate
             end
             %error in ui
             eNCC_fft = 0*uiNCC_fft;
-            eNCC = 0*uiNCC;
+            %eNCC = 0*uiNCC;
             err = 0;
     end
     
@@ -614,17 +618,17 @@ while currentUpdate < maxUpdate
     %**********************************************************************
     %**********************************************************************
     %put new output signals into queue
-    queueOutputData(handles.s, [clock, uiN, camTrigN])
-    if strcmp(get(handles.daqinfo.ao,'Running'), 'Off')
+    queueOutputData(handles.daqinfo.sAO, [clock, uiN, camTrigN]);
+    if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false)
         disp(['update ',num2str(currentUpdate),': ao turned off--increase N (end of loop)'])
-        while get(handles.daqinfo.ao,'samplesavailable') < SPC
-            queueOutputData(handles.s, [clock, uiN, camTrigN])
+        while get(handles.daqinfo.sAO,'ScansQueued') < SPC
+            queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
         end
-        start(handles.daqinfo.ao)
+        startBackground(handles.daqinfo.sAO); %TODO - foreground or background
     end
     
     %restart analog input device
-    start(handles.daqinfo.ai)
+    startForeground(handles.daqinfo.sAI); %TODO - foreground or background
     
     currentUpdate = currentUpdate + 1;
     
@@ -641,7 +645,8 @@ while currentUpdate < maxUpdate
 
 end
 
-stop(handles.daqinfo.ai)
-stop(handles.daqinfo.ao)
+stop(handles.daqinfo.sAI)
+stop(handles.daqinfo.sAO)
+delete(lhAO);
 
 set(handles.run,'value',0,'string','Run')
