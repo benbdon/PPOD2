@@ -231,7 +231,9 @@ savedSignalVal = get(handles.savedSignalsListbox,'value');
 
 lhAO = addlistener(handles.daqinfo.sAO,'DataRequired', ...
     @(src,event) src.queueOutputData([clock, uiN, camTrigN]));
-
+%handles.daqinfo.sAI.NotifyWhenDataAvailableExceeds = SPC*NCC;
+%lhAI = addlistener(handles.daqinfo.sAI,'DataAvailable', ...
+%    @(src,event) assignin('base','aidata_raw',event.Data));
 %start analog output device (sends out data immediately)
 queueOutputData(handles.daqinfo.sAO,[clock, uiN, camTrigN]);
 startBackground(handles.daqinfo.sAO); %TODO - foreground or background
@@ -239,9 +241,7 @@ startBackground(handles.daqinfo.sAO); %TODO - foreground or background
 %start analog intput device (set to log during trigger event and then stops
 %once data has been logged)
 
-aidata_raw = startForeground(handles.daqinfo.sAI);%TODO - foreground or background
-
-
+%startBackground(handles.daqinfo.sAI);%TODO - foreground or background
 
 currentUpdate = 0;
 set(handles.currentUpdate,'string',num2str(currentUpdate))
@@ -306,32 +306,35 @@ while currentUpdate < maxUpdate
     %the data is logged)
     pause(.1) %TODO - this is not good
 
-    while get(handles.daqinfo.sAI,'ScansAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))  
-        if strcmp(get(handles.daqinfo.sAI,'IsRunning'),true) && get(handles.daqinfo.sAO,'ScansQueued') < SPC*N
-            queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
-            if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false) 
-                disp(['update ',num2str(currentUpdate),': ao turned off--increase N'])
-                startBackground(handles.daqinfo.sAO); %TODO - foreground or background
-            end
-            if strcmp(get(handles.daqinfo.sAO,'IsRunning'), true)
-                button = questdlg('Analog output card ran out of samples in queue.  Number of processing cycles should be increased.  Do you wish to continue operating?');
-                switch button
-                    case {'No','Cancel'}
-                        stop(handles.daqinfo.sAI)
-                        set(handles.run,'value',0,'string','Run')
-                        set(handles.samplingFreq,'enable','on')
-                        set(handles.numCollectedCycles,'enable','on')
-                        set(handles.T,'enable','on')
-                        set(handles.desSignals_Pdd,'enable','on')
-                        set(handles.desSignals_didd,'enable','on')
-                        set(handles.desSignals_ui,'enable','on')
-                        return
-                    otherwise
-                        startBackground(handles.daqinfo.sAO); %TODO - foreground or background
-                end
-            end
-        end
-    end
+%Pretty sure this whole chunk of code below keeps AO queue loaded and waits
+%until there are sufficient scans to load into var aidata_raw (both these
+%tasks are now handled with listeners)
+%     while get(handles.daqinfo.sAI,'ScansAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))  
+%         if strcmp(get(handles.daqinfo.sAI,'IsRunning'),true) && get(handles.daqinfo.sAO,'ScansQueued') < SPC*N
+%             queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
+%             if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false) 
+%                 disp(['update ',num2str(currentUpdate),': ao turned off--increase N'])
+%                 startBackground(handles.daqinfo.sAO); %TODO - foreground or background
+%             end
+%             if strcmp(get(handles.daqinfo.sAO,'IsRunning'), true)
+%                 button = questdlg('Analog output card ran out of samples in queue.  Number of processing cycles should be increased.  Do you wish to continue operating?');
+%                 switch button
+%                     case {'No','Cancel'}
+%                         stop(handles.daqinfo.sAI)
+%                         set(handles.run,'value',0,'string','Run')
+%                         set(handles.samplingFreq,'enable','on')
+%                         set(handles.numCollectedCycles,'enable','on')
+%                         set(handles.T,'enable','on')
+%                         set(handles.desSignals_Pdd,'enable','on')
+%                         set(handles.desSignals_didd,'enable','on')
+%                         set(handles.desSignals_ui,'enable','on')
+%                         return
+%                     otherwise
+%                         startBackground(handles.daqinfo.sAO); %TODO - foreground or background
+%                 end
+%             end
+%         end
+%     end
     %import NCC cycles of analog input signals.  columns of aidata
     %correspond to ai_channel_names
     
@@ -340,7 +343,7 @@ while currentUpdate < maxUpdate
     end
     while strcmp(get(handles.daqinfo.sAO,'IsRunning'),false)
     end
-
+    aidata_raw = startForeground(handles.daqinfo.sAI);
     meanaidata_raw = mean(aidata_raw);
     aidata_meanoffset = aidata_raw - repmat(meanaidata_raw,[size(aidata_raw,1),1]);
 
@@ -618,17 +621,17 @@ while currentUpdate < maxUpdate
     %**********************************************************************
     %**********************************************************************
     %put new output signals into queue
-    queueOutputData(handles.daqinfo.sAO, [clock, uiN, camTrigN]);
-    if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false)
-        disp(['update ',num2str(currentUpdate),': ao turned off--increase N (end of loop)'])
-        while get(handles.daqinfo.sAO,'ScansQueued') < SPC
-            queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
-        end
-        startBackground(handles.daqinfo.sAO); %TODO - foreground or background
-    end
+%     queueOutputData(handles.daqinfo.sAO, [clock, uiN, camTrigN]);
+%     if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false)
+%         disp(['update ',num2str(currentUpdate),': ao turned off--increase N (end of loop)'])
+%         while get(handles.daqinfo.sAO,'ScansQueued') < SPC
+%             queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
+%         end
+%         startBackground(handles.daqinfo.sAO); %TODO - foreground or background
+%     end
     
     %restart analog input device
-    startForeground(handles.daqinfo.sAI); %TODO - foreground or background
+    %startBackground(handles.daqinfo.sAI); %TODO - foreground or background
     
     currentUpdate = currentUpdate + 1;
     
