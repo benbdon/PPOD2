@@ -578,7 +578,7 @@ while currentUpdate < maxUpdate
     ind = find(abs(uiCyc) > uMax);
     uiCyc(ind) = signuiCyc(ind).*uMax(ind);
     if ~isempty(ind)
-        max(uiCyc)
+        max(uiCyc);
         uiCyc = 0*uiCyc;
         warndlg('Saturation voltage exceeded.  Controller shut down.')
         break

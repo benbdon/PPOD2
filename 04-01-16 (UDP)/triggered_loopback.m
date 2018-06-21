@@ -13,18 +13,19 @@ sAI.Connections(1).TriggerCondition = 'RisingEdge';
 %'Dev1' - PCI-6713 - AO
 sAO = daq.createSession('ni');
 sAO.Rate = 1000;
+signal = [linspace(0,5,4999)';0];
+clock = zeros(5000,1);
+clock(250,1) = 5;
 lhAO = addlistener(sAO,'DataRequired', ...
     @(src,event) src.queueOutputData([clock, signal]));
 sAO.IsContinuous = true; %NECESSARY AND NOT IN DOCUMENTATION
 
 ch = addAnalogOutputChannel(sAO,'Dev1', 'ao0', 'Voltage');
 ch.Name = 'clock';
-clock = zeros(5000,1);
-clock(250,1) = 5;
 
-ch = addAnalogOutputChannel(sAO,'Dev1', 'ao6', 'Voltage');
+
+ch = addAnalogOutputChannel(sAO,'Dev1', 'ao1', 'Voltage');
 ch.Name = 'signal';
-signal = [linspace(0,5,4999)';0];
 
 %Queue up the output
 queueOutputData(sAO,[clock,signal])
