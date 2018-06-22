@@ -2,10 +2,10 @@ function handles = PPODcontroller(handles)
 
 [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
 
-NTC = eval(get(handles.numTransientCycles,'string'));
-NCC = eval(get(handles.numCollectedCycles,'string'));
-NPC = eval(get(handles.numProcessingCycles,'string'));
-N = NTC + NCC + NPC;
+NTC = eval(get(handles.numTransientCycles,'string')); %Number of transient cycles (10)
+NCC = eval(get(handles.numCollectedCycles,'string')); %Number of collected cycles (5)
+NPC = eval(get(handles.numProcessingCycles,'string')); %%TODO - Number of processing cycles (25)
+N = NTC + NCC + NPC; %Total number of cycles per update
 
 if strcmp(handles.globalinfo.aiConfig,'force')
     FsensorCrosstalk = handles.calibrationinfo.FsensorCrosstalk;
@@ -14,16 +14,16 @@ if strcmp(handles.globalinfo.aiConfig,'force')
     V2m_LS = handles.calibrationinfo.V2m_LS;
 end
 
-SPC = handles.signalinfo.samplesPerCycle;
-T = handles.signalinfo.T;
-samplingFreq = handles.signalinfo.samplingFreq;
-f1 = double(sym(1/T));
-fps = handles.camerainfo.fps;
+SPC = handles.signalinfo.samplesPerCycle; %number of samples collected per cycle 500 data points at 10k samples/sec
+T = handles.signalinfo.T; %period 0.05
+samplingFreq = handles.signalinfo.samplingFreq; %sampling freq 10k
+f1 = double(sym(1/T)); %some freq (20 Hz)
+fps = handles.camerainfo.fps; %TODO (1 frame per second??)
 
 %pre-emptively add cycles to allow for enough processing time if graphics
 %are being updated
-NPCold = NPC;
-cycPerUpdateMinTimePlot = 1.75;
+NPCold = NPC; %NPC_old is the NPC before it gets potentially updated
+cycPerUpdateMinTimePlot = 1.75; 
 cycPerUpdateMinTimeNoPlot = .25;
 if get(handles.updatePlots,'value') && ~strcmp(handles.globalinfo.mode,'uiControl')
     if N*T < cycPerUpdateMinTimePlot
@@ -47,7 +47,7 @@ else
     end
 end
 
-%frame transformations
+%frame transformations 
 T_W2pmi = handles.calibrationinfo.T_W2pmi;
 T_di2ami = handles.calibrationinfo.T_di2ami;
 T_F2W = handles.calibrationinfo.T_F2W;
@@ -229,19 +229,15 @@ savedSignalVal = get(handles.savedSignalsListbox,'value');
 % size(uiN)
 % size(camTrigN)
 
-lhAO = addlistener(handles.daqinfo.sAO,'DataRequired', ...
-    @(src,event) src.queueOutputData([clock, uiN, camTrigN]));
-%handles.daqinfo.sAI.NotifyWhenDataAvailableExceeds = SPC*NCC;
-%lhAI = addlistener(handles.daqinfo.sAI,'DataAvailable', ...
-%    @(src,event) assignin('base','aidata_raw',event.Data));
+lhAO = addlistener(handles.daqinfo.sAO,'DataRequired',...
+    @(src,event) src.queueOutputData([evalin('PPODcontroller','clock'),evalin('PPODcontroller','uiN'),evalin('PPODcontroller','camTrigN')]));
+    
 %start analog output device (sends out data immediately)
 queueOutputData(handles.daqinfo.sAO,[clock, uiN, camTrigN]);
 startBackground(handles.daqinfo.sAO); %TODO - foreground or background
 
 %start analog intput device (set to log during trigger event and then stops
 %once data has been logged)
-
-%startBackground(handles.daqinfo.sAI);%TODO - foreground or background
 
 currentUpdate = 0;
 set(handles.currentUpdate,'string',num2str(currentUpdate))
@@ -306,9 +302,6 @@ while currentUpdate < maxUpdate
     %the data is logged)
     pause(.1) %TODO - this is not good
 
-%Pretty sure this whole chunk of code below keeps AO queue loaded and waits
-%until there are sufficient scans to load into var aidata_raw (both these
-%tasks are now handled with listeners)
 %     while get(handles.daqinfo.sAI,'ScansAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))  
 %         if strcmp(get(handles.daqinfo.sAI,'IsRunning'),true) && get(handles.daqinfo.sAO,'ScansQueued') < SPC*N
 %             queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
@@ -341,8 +334,8 @@ while currentUpdate < maxUpdate
     if strcmp(handles.globalinfo.mode,'PddControl') && ~get(handles.run,'value')
         break
     end
-    while strcmp(get(handles.daqinfo.sAO,'IsRunning'),false)
-    end
+%     while strcmp(get(handles.daqinfo.sAO,'IsRunning'),false)
+%     end
     aidata_raw = startForeground(handles.daqinfo.sAI);
     meanaidata_raw = mean(aidata_raw);
     aidata_meanoffset = aidata_raw - repmat(meanaidata_raw,[size(aidata_raw,1),1]);
@@ -650,6 +643,6 @@ end
 
 stop(handles.daqinfo.sAI)
 stop(handles.daqinfo.sAO)
-delete(lhAO);
+%delete(lhAO);
 
 set(handles.run,'value',0,'string','Run')
