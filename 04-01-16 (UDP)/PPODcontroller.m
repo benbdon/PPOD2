@@ -230,7 +230,7 @@ savedSignalVal = get(handles.savedSignalsListbox,'value');
 % size(camTrigN)
 
 lhAO = addlistener(handles.daqinfo.sAO,'DataRequired',...
-    @(src,event) src.queueOutputData([evalin('PPODcontroller','clock'),evalin('PPODcontroller','uiN'),evalin('PPODcontroller','camTrigN')]));
+    @(src,event) queueOutputData(src,[evalin('base','clock'),evalin('base','uiN'),evalin('base','camTrigN')]));
     
 %start analog output device (sends out data immediately)
 queueOutputData(handles.daqinfo.sAO,[clock, uiN, camTrigN]);
