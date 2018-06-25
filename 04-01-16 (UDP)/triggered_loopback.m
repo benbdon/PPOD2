@@ -1,4 +1,5 @@
 %This program outputs a continouos output signal 0 - 5V on ao6
+%function [data,timestamps] = triggered_loopback()
 daqreset
 
 %'Dev2' - PCIe-6323 - AI
@@ -19,9 +20,8 @@ ch.Name = 'clock';
 ch = addAnalogOutputChannel(sAO,'Dev1', 'ao1', 'Voltage');
 ch.Name = 'signal';
 lhAO = addlistener(sAO,'DataRequired', @(src,event) queueOutputData(src,[evalin('base','clock'), evalin('base','signal')]));
-% lhAO = addlistener(sAO,'DataRequired', @(src,event) ... 
-%     queueOutputData(src,[clock,signal])); %running line 22 and 23 rather
-%     than 21 will cause the AI to never be triggered
+%lhAO = addlistener(sAO,'DataRequired', @(src,event) ... 
+     %queueOutputData(src,[clock,signal]));
 
 %5000 voltages all 0's (won't trigger acquisition)
 clock = zeros(5000,1); 
@@ -33,7 +33,7 @@ signal = [linspace(0,5,4999)';0];
 queueOutputData(sAO,[clock, signal]);
 
 %eventually the AO queue will run-out of data and this new clock signal should get queued 
-clock(4000,1) = 5;
+clock(2000,1) = 5;
 
 %Start AI/AO tasks
 startBackground(sAO);
@@ -42,3 +42,4 @@ delete(lhAO)
 stop(sAO)
 stop(sAI)
 plot(timestamps,data)
+%end
