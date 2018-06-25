@@ -1,5 +1,7 @@
 function handles = PPODcontroller(handles)
-
+global uiN
+global camTrigN
+global clock
 [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
 
 NTC = eval(get(handles.numTransientCycles,'string')); %Number of transient cycles (10)
@@ -230,7 +232,7 @@ savedSignalVal = get(handles.savedSignalsListbox,'value');
 % size(camTrigN)
 
 lhAO = addlistener(handles.daqinfo.sAO,'DataRequired',...
-    @(src,event) queueOutputData(src,[evalin('base','clock'),evalin('base','uiN'),evalin('base','camTrigN')]));
+    @(src,event) queueOutputData(src,[clock,uiN,camTrigN]));
     
 %start analog output device (sends out data immediately)
 queueOutputData(handles.daqinfo.sAO,[clock, uiN, camTrigN]);
@@ -582,6 +584,7 @@ while currentUpdate < maxUpdate
     NPC = eval(get(handles.numProcessingCycles,'string'));
     N = NTC + NCC + NPC;
     uiN = repmat(uiCyc,[N,1]);
+    uiN(:,1) = 5;
     
     %update clock
     clock = 0*uiN(:,1);
