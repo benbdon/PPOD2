@@ -1,7 +1,5 @@
 function handles = PPODcontroller(handles)
-global uiN
-global camTrigN
-global clock
+
 [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
 
 NTC = eval(get(handles.numTransientCycles,'string')); %Number of transient cycles (10)
@@ -180,8 +178,8 @@ end
 uiN = repmat(uiCyc ,[N,1]);
 
 %create clock ao signal with trigger just before cycle NTC
-clock = 0*uiN(:,1);
-clock(NTC*SPC) = 5;
+clock1 = 0*uiN(:,1);
+clock1(NTC*SPC) = 5;
 
 %INITIALIZES TRIGGER SIGNAL FOR CAMERA**********************************
 %***********************************************************************
@@ -231,11 +229,11 @@ savedSignalVal = get(handles.savedSignalsListbox,'value');
 % size(uiN)
 % size(camTrigN)
 
-lhAO = addlistener(handles.daqinfo.sAO,'DataRequired',...
-    @(src,event) queueOutputData(src,[clock,uiN,camTrigN]));
+lhAO = addlistener(handles.daqinfo.sAO,'DataRequired',@(src,event)...
+    queueOutputData(src,[evalin('base','clock1'),evalin('base','uiN'),evalin('base','camTrigN')]));
     
 %start analog output device (sends out data immediately)
-queueOutputData(handles.daqinfo.sAO,[clock, uiN, camTrigN]);
+queueOutputData(handles.daqinfo.sAO,[clock1, uiN, camTrigN]);
 startBackground(handles.daqinfo.sAO); %TODO - foreground or background
 
 %start analog intput device (set to log during trigger event and then stops
@@ -247,6 +245,7 @@ set(handles.currentUpdate,'string',num2str(currentUpdate))
 maxUpdate = 1;
 err = Inf;
 
+%Main Control Loop
 while currentUpdate < maxUpdate
 
     if( currentUpdate >= 5)
@@ -587,8 +586,8 @@ while currentUpdate < maxUpdate
     uiN(:,1) = 5;
     
     %update clock
-    clock = 0*uiN(:,1);
-    clock(NTC*SPC) = 5;
+    clock1 = 0*uiN(:,1);
+    clock1(NTC*SPC) = 5;
     
     %update camera trigger signal
     if strcmp(handles.globalinfo.aoConfig,'camera')
