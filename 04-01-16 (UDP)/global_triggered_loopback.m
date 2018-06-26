@@ -32,7 +32,7 @@ lhAO = addlistener(sAO,'DataRequired', @(src,event)...
     queueOutputData(src,[clock,signal]));
 
 %add the column of 0's and the increasing signal
-queueOutputData(sAO,[clock, signal]);
+queueOutputData(sAO,[evalin('base','clock'),evalin('base','signal')]);
 
 %eventually the AO queue will run-out of data and this new clock  &  decreasing signal should get queued 
 clock(2000,1) = 5;
