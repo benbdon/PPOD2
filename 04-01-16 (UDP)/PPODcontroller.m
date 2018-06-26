@@ -176,11 +176,12 @@ end
 
 %create N cycles of uiCyc.
 uiN = repmat(uiCyc ,[N,1]);
+assignin('base','uiN',uiN)
 
 %create clock ao signal with trigger just before cycle NTC
 clock1 = 0*uiN(:,1);
 clock1(NTC*SPC) = 5;
-
+assignin('base','clock1',clock)
 %INITIALIZES TRIGGER SIGNAL FOR CAMERA**********************************
 %***********************************************************************
 switch handles.globalinfo.aoConfig
@@ -583,16 +584,18 @@ while currentUpdate < maxUpdate
     NPC = eval(get(handles.numProcessingCycles,'string'));
     N = NTC + NCC + NPC;
     uiN = repmat(uiCyc,[N,1]);
-    uiN(:,1) = 5;
+    assignin('base','uiN',uiN)
     
     %update clock
     clock1 = 0*uiN(:,1);
     clock1(NTC*SPC) = 5;
+    assignin('base','clock1',clock1);
     
     %update camera trigger signal
     if strcmp(handles.globalinfo.aoConfig,'camera')
         camTrigN = 5 + zeros(SPC*N,1);
         camTrigN(1:10)=0;
+        assignin('base','camTrigN',camTrigN)
 %         camTrigInd1_nomod = camTrigInd1;
 %         while camTrigInd1_nomod <= SPC*N
 %             if camTrigFlag
@@ -612,6 +615,7 @@ while currentUpdate < maxUpdate
      %   end
     else
         camTrigN = [];
+        assignin('base','camTrigN',camTrigN);
     end
     %**********************************************************************
     %**********************************************************************
@@ -645,6 +649,6 @@ end
 
 stop(handles.daqinfo.sAI)
 stop(handles.daqinfo.sAO)
-%delete(lhAO);
+delete(lhAO);
 
 set(handles.run,'value',0,'string','Run')

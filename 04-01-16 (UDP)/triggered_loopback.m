@@ -1,5 +1,5 @@
 %This program outputs a continouos output signal 0 - 5V on ao6
-%function [data,timestamps] = triggered_loopback()
+function [data,timestamps] = triggered_loopback()
 
 daqreset;
 
@@ -24,9 +24,11 @@ ch.Name = 'signal';
 
 %5000 voltages all 0's (won't trigger acquisition)
 clock = zeros(5000,1); 
-
+assignin('base','clock',clock);
 %5000 voltages data points from 0 to 5 and back to 0
 signal = [linspace(0,5,4999)';0];
+assignin('base','signal',signal);
+
 lhAO = addlistener(sAO,'DataRequired', @(src,event)...
     queueOutputData(src,[evalin('base','clock'),evalin('base','signal')]));
 
@@ -35,7 +37,9 @@ queueOutputData(sAO,[clock, signal]);
 
 %eventually the AO queue will run-out of data and this new clock  &  decreasing signal should get queued 
 clock(2000,1) = 5;
+assignin('base','clock',clock);
 signal = linspace(5,0,5000)';
+assignin('base','signal',signal);
 
 %Start AI/AO tasks
 startBackground(sAO);
@@ -44,4 +48,4 @@ delete(lhAO)
 stop(sAO)
 stop(sAI)
 plot(timestamps,data)
-%end
+end
