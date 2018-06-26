@@ -1,7 +1,6 @@
 %This program outputs a continouos output signal 0 - 5V on ao6
-function [data,timestamps] = triggered_loopback()
-global clock
-global signal
+%function [data,timestamps] = triggered_loopback()
+
 daqreset;
 
 %'Dev2' - PCIe-6323 - AI
@@ -29,7 +28,7 @@ clock = zeros(5000,1);
 %5000 voltages data points from 0 to 5 and back to 0
 signal = [linspace(0,5,4999)';0];
 lhAO = addlistener(sAO,'DataRequired', @(src,event)...
-    queueOutputData(src,clock,signal]));
+    queueOutputData(src,[evalin('base','clock'),evalin('base','signal')]));
 
 %add the column of 0's and the increasing signal
 queueOutputData(sAO,[clock, signal]);
@@ -45,6 +44,4 @@ delete(lhAO)
 stop(sAO)
 stop(sAI)
 plot(timestamps,data)
-end
-
-function 
+%end
