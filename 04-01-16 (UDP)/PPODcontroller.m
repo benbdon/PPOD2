@@ -182,6 +182,7 @@ assignin('base','uiN',uiN)
 clock1 = 0*uiN(:,1);
 clock1(NTC*SPC) = 5;
 assignin('base','clock1',clock)
+
 %INITIALIZES TRIGGER SIGNAL FOR CAMERA**********************************
 %***********************************************************************
 switch handles.globalinfo.aoConfig
