@@ -250,6 +250,7 @@ err = Inf;
 %Main Control Loop
 while currentUpdate < maxUpdate
 
+    %Send the measured error to "handle.udp" after 5 runs
     if( currentUpdate >= 5)
         absError = str2double(get(handles.currentError,'String'));
         udpMessage = sprintf('%f',absError);

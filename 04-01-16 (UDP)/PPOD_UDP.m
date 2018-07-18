@@ -1,5 +1,6 @@
 % Create UDP Object
-handles.udp = udp(ipA,portA,'LocalPort',portB);
+%handles.udp = udp(ipA,portA,'LocalPort',portB);
+handles.udp = udp(ipA,portA);
 handles.udp.bytesavailablefcnmode = 'byte';     % A bytes-available event is generated when the specified number of bytes is available (bytesavailablefcncount)
 handles.udp.inputbuffersize = 256;
 handles.udp.bytesavailablefcncount = 3;
@@ -63,3 +64,4 @@ while currentUpdate < maxUpdate
      if (savedSignalVal ~= get(handles.udp_text,'value')) && (get(handles.udp_text,'value')~=0)
          set(handles.savedSignalsListbox,'value',get(handles.udp_text,'value'));
      end
+end

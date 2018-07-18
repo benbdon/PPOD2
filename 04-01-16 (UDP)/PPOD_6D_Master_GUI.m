@@ -2118,7 +2118,7 @@ end
 function UDP_Callback(hObject, eventdata, handles)
 
 % Receive UDP message from Machine A - Windows Computer
-udpRead = fscanf(handles.udp)
+udpRead = fscanf(handles.udp);
 
 % Scans UDP message for the first character - the identifier
 udpIdentifier = sscanf(udpRead, '%c');
