@@ -1,8 +1,0 @@
-t = tcpip('0.0.0.0', 27015, 'NetworkRole', 'Server');
-set(t,'OutputBufferSize',512);
-disp(t)
-fopen(t);
-a = fread(t, 14));
-disp(int2str(a));
-fwrite(t,a);
-fclose(t);

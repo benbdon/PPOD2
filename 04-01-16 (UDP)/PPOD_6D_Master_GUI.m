@@ -56,22 +56,10 @@ set(handles.plottedSignals_Pdd,'value',1)
 set(handles.timeDomain,'value',1)
 set(handles.updatePlots,'value',1)
 
-%initialize all variables, UDP object, and GUI
+%initialize all variables, TCP object, and GUI
 handles = InitializeHandles(handles);
 InitializeGUI(handles);
-
-handles = udpReceive(handles);                              % creates UDP object between Machine A and Machine C
-handles.udp.DatagramReceivedFcn = {@UDP_Callback,handles};   % specify callback function to execute when datagram is received
-% handles.udp.BytesAvailableFcnCount = 2;
-% handles.udp.bytesavailablefcn = {@UpdateFromCamera_Callback,handles};
-fopen(handles.udp);                                         % connect to UDP object
-%set(handles.udp_text,'value',0)
-%handles.count = 0;
-
 guidata(hObject, handles);
-
-
-
 
 % --- Outputs from this function are returned to the command line.
 function varargout = PPOD_6D_Master_GUI_OutputFcn(hObject, eventdata, handles)
@@ -276,7 +264,7 @@ if ~strcmp(char(constants),char(handles.signalinfo.constants))
     
     constants = handles.signalinfo.constants;
     T = handles.signalinfo.T;
-    f = 1/T;%delete???
+    f = 1/T; %delete???
     for i = 1:length(constants)
         eval([constants{i},';'])
     end
@@ -2113,15 +2101,14 @@ end
 
 
 
+% --- TCP_Callback callback function - sets either desired acceleration values in GUI, or loads a saved signal
+function TCP_Callback(hObject, eventdata, handles)
 
-% --- UDP_Receive callback function - sets either desired acceleration values in GUI, or loads a saved signal
-function UDP_Callback(hObject, eventdata, handles)
+% Receive TCP message from Machine A - Windows Computer
+tcpRead = fscanf(handles.tcp) %intentionally missing semicolon to see incoming message
 
-% Receive UDP message from Machine A - Windows Computer
-udpRead = fscanf(handles.udp)
-
-% Scans UDP message for the first character - the identifier
-udpIdentifier = sscanf(udpRead, '%c');
+% Scans TCP message for the first character - the identifier
+tcpIdentifier = sscanf(tcpRead, '%c');
 
 
 % Equation Mode - Will create the 6 signals for the desired accelerations
@@ -2163,20 +2150,19 @@ if (udpIdentifier(1) == 'E')
 
 
 %}
-if (udpIdentifier(1) == 'E')
+if (tcpIdentifier(1) == 'E')
     
-    % Scans UDP message from Machine A - Windows Computer [Identifier, Horiz_Accel, Phase, Vert_Accel]
-    udpMessage = sscanf(udpRead, '%c%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c');  % ignore space in between 3 doubles -> %*c
+    % Scans TCP message from Machine A - Windows Computer [Identifier, Horiz_Accel, Phase, Vert_Accel]
+    tcpMessage = sscanf(tcpRead, '%c%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c');  %*c ignore space
     
-    % Stores UDP message into horizontal acceleration, phase offset, and vertical acceleration
-    % Horiz_Accel = udpMessage(2);
-    Phase_Deg = udpMessage(2);
-    Vert_Accel = udpMessage(3);
-    Ysol = udpMessage(4);
-    Xsol = udpMessage(5);
-    Vert_Alpha = udpMessage(6);
-    Y_Alpha = udpMessage(7);
-    X_Alpha = udpMessage(8);
+    % Stores TCP message into horizontal acceleration, phase offset, and vertical acceleration
+    Phase_Deg = tcpMessage(2); %PHASE_OFFSET
+    Vert_Accel = tcpMessage(3);%VERT_AMPL
+    Ysol = tcpMessage(4); %HORIZ_AMPL_X
+    Xsol = tcpMessage(5); %HORIZ_AMPL_Y
+    Vert_Alpha = tcpMessage(6); %VERT_ALPHA
+    Y_Alpha = tcpMessage(7); %HORIZ_ALPHA_X
+    X_Alpha = tcpMessage(8); %HORIZ_ALPHA_Y
     % Computes the X and Y horizontal acceleration components
     %   - X: perpendicular to pony wall
     %   - Y: toward/away from side-view camera (Mikrotron)
@@ -2204,19 +2190,19 @@ if (udpIdentifier(1) == 'E')
 
     
 % Saved Signal Mode - Selects the _th Saved Signal in Gui
-elseif (udpIdentifier(1) == 'S')
+elseif (tcpIdentifier(1) == 'S')
     
     % Scans UDP message from Machine A - Windows Computer [Identifier, SavedSignalNumber]
     %   - SavedSignalNumber corresponds to the _th Saved Signal in GUI (starts at 1)
-    udpMessage = sscanf(udpRead, '%c%*c %f');
-    udpCommand = double(udpMessage(2)); % Converts the saved signal number from a float to a double (required for handles.savedSignalsListbox)
+    tcpMessage = sscanf(tcpRead, '%c%*c %f');
+    tcpCommand = double(tcpMessage(2)); % Converts the saved signal number from a float to a double (required for handles.savedSignalsListbox)
     
     % Get current saved signal value
     savedSignalVal = get(handles.savedSignalsListbox,'value');
     
     % If necessary to update saved signal, do so
-    if (savedSignalVal ~= udpCommand) && (udpCommand ~= 0)
-        set(handles.savedSignalsListbox,'value',udpCommand);
+    if (savedSignalVal ~= tcpCommand) && (tcpCommand ~= 0)
+        set(handles.savedSignalsListbox,'value',tcpCommand);
     end
     
     % PPODcontroller.m checks to see if the savedSignalsListbox value has changed from the previous iteration.
@@ -2273,7 +2259,7 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: delete(hObject) closes the figure
-fclose(handles.udp);
-delete(handles.udp)
-clear ipA portA ipB portB handles.udp
+%TODO fclose(handles.tcp);
+%TODO delete(handles.tcp)
+%clear ipA portA ipB portB handles.tcp %TODO fix which ports need to be cleared
 delete(hObject);

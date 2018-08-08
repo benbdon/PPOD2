@@ -110,7 +110,7 @@ switch aiConfig
         handles.daqinfo.ao = [];%analog output object
         handles.daqinfo.ai = [];%analog input object
         handles.daqinfo = InitializeDAQInfo(handles);%puts data into empty fields above
-        
+ 
         %calibrationinfo
         [T_W2pmi, T_di2ami, T_F2W, T_LS2W] = frameTransformations(handles);%conversion between local acceleration readings to plate accelerations??
         handles.calibrationinfo.T_W2pmi = T_W2pmi;%transforms accelerations in world frame to accelerations in measured plate frames

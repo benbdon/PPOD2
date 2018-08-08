@@ -1,5 +1,12 @@
 function handles = PPODcontroller(handles)
 
+socket = tcpip('0.0.0.0', 27015, 'NetworkRole', 'Server');
+socket.InputBufferSize = 20;
+socket.Timeout = 120;
+msgbox('Click OK and then go turn on the master_code on the master computer');
+fopen(socket);
+flag = 0;
+
 [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
 
 NTC = eval(get(handles.numTransientCycles,'string')); %Number of transient cycles (10)
@@ -191,36 +198,12 @@ switch handles.globalinfo.aoConfig
         %each cycle)
         camTrigN = 5 + zeros(SPC*N,1);
         camTrigN(1:10)=0;
-%         samplesPerCamTrig = samplingFreq/fps;
-%         samplesPerMillisec = round(1/T*SPC*1e-3);
-%         
-%         camTrigInd1 = samplesPerCamTrig;
-%         camTrigInd2 = samplesPerCamTrig + samplesPerMillisec;
-%         camTrigFlag = 0;
-%         camTrigInd1_nomod = camTrigInd1;
-%         while camTrigInd1_nomod <= SPC*N
-%             if camTrigFlag
-%                 camTrigN(1:camTrigIndLeftover) = 0;
-%             end
-%             if camTrigInd2 > SPC*N
-%                 camTrigFlag = 1;
-%                 camTrigIndLeftover = mod(camTrigInd2,SPC);
-%                 camTrigN(camTrigInd1:end) = 0;
-%             else
-%                 camTrigN(camTrigInd1:camTrigInd2) = 0;
-%                 camTrigFlag = 0;
-%             end
-%             camTrigInd1_nomod = camTrigInd1 + samplesPerCamTrig;
-%             camTrigInd1 = mod(camTrigInd1+samplesPerCamTrig-1,SPC*N)+1;
-%             camTrigInd2 = mod(camTrigInd2+samplesPerCamTrig-1,SPC*N)+1;
-
- %       end
+        assignin('base','camTrigN',camTrigN)
     case 'standard'
         camTrigN = [];
     otherwise
         error('selection does not match any case')
 end
-
 %**************************************************************************
 %**************************************************************************
 %selected saved signal from savedsignal listbox
@@ -238,7 +221,7 @@ lhAO = addlistener(handles.daqinfo.sAO,'DataRequired',@(src,event)...
 queueOutputData(handles.daqinfo.sAO,[clock1, uiN, camTrigN]);
 startBackground(handles.daqinfo.sAO); %TODO - foreground or background
 
-%start analog intput device (set to log during trigger event and then stops
+%start analog input device (set to log during trigger event and then stops
 %once data has been logged)
 
 currentUpdate = 0;
@@ -250,13 +233,18 @@ err = Inf;
 %Main Control Loop
 while currentUpdate < maxUpdate
 
-    %Send the measured error to "handle.udp" after 5 runs
-    if( currentUpdate >= 5)
-        absError = str2double(get(handles.currentError,'String'));
-        udpMessage = sprintf('%f',absError);
-        fprintf(handles.udp, udpMessage);
+    while(socket.BytesAvailable > 0)
+        char(fread(socket,[1,19]))
+        flag = 1;
     end
-
+    
+    %Send the measured error to "handle.tcp" after 5 runs
+    absError = str2double(get(handles.currentError,'String'));
+    disp(absError)
+    if( flag == 1 && absError < 0.2)
+        fwrite(socket, 'Done');
+        flag = 0;
+    end
     
     switch handles.globalinfo.mode
         case {'PddControl','diddControl','uiControl'}
@@ -597,7 +585,6 @@ while currentUpdate < maxUpdate
     if strcmp(handles.globalinfo.aoConfig,'camera')
         camTrigN = 5 + zeros(SPC*N,1);
         camTrigN(1:10)=0;
-        assignin('base','camTrigN',camTrigN)
 %         camTrigInd1_nomod = camTrigInd1;
 %         while camTrigInd1_nomod <= SPC*N
 %             if camTrigFlag
@@ -617,7 +604,6 @@ while currentUpdate < maxUpdate
      %   end
     else
         camTrigN = [];
-        assignin('base','camTrigN',camTrigN);
     end
     %**********************************************************************
     %**********************************************************************
