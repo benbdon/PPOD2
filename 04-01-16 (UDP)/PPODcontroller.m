@@ -1,12 +1,4 @@
 function handles = PPODcontroller(handles)
-
-socket = tcpip('0.0.0.0', 27015, 'NetworkRole', 'Server');
-socket.InputBufferSize = 20;
-socket.Timeout = 120;
-msgbox('Click OK and then go turn on the master_code on the master computer');
-fopen(socket);
-flag = 0;
-
 [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
 
 NTC = eval(get(handles.numTransientCycles,'string')); %Number of transient cycles (10)
@@ -179,8 +171,6 @@ end
 %**********************************************************
 %**********************************************************
 
-
-
 %create N cycles of uiCyc.
 uiN = repmat(uiCyc ,[N,1]);
 assignin('base','uiN',uiN)
@@ -198,7 +188,7 @@ switch handles.globalinfo.aoConfig
         %each cycle)
         camTrigN = 5 + zeros(SPC*N,1);
         camTrigN(1:10)=0;
-        assignin('base','camTrigN',camTrigN)
+        assignin('base','camTrigN',camTrigN);
     case 'standard'
         camTrigN = [];
     otherwise
@@ -206,20 +196,22 @@ switch handles.globalinfo.aoConfig
 end
 %**************************************************************************
 %**************************************************************************
+%initialize a TCP connection
+socket = tcpip('0.0.0.0', 27015, 'NetworkRole', 'Server');
+socket.InputBufferSize = 19;
+socket.Timeout = 120;
+disp("Go turn on the Master program");
+fopen(socket);
+flag = 0;
+
 %selected saved signal from savedsignal listbox
 savedSignalVal = get(handles.savedSignalsListbox,'value');
-
-%put u_ao_init and clock_init into the queue
-% size(clock)
-% size(uiN)
-% size(camTrigN)
 
 lhAO = addlistener(handles.daqinfo.sAO,'DataRequired',@(src,event)...
     queueOutputData(src,[evalin('base','clock1'),evalin('base','uiN'),evalin('base','camTrigN')]));
     
-%start analog output device (sends out data immediately)
 queueOutputData(handles.daqinfo.sAO,[clock1, uiN, camTrigN]);
-startBackground(handles.daqinfo.sAO); %TODO - foreground or background
+startBackground(handles.daqinfo.sAO);
 
 %start analog input device (set to log during trigger event and then stops
 %once data has been logged)
@@ -235,6 +227,7 @@ while currentUpdate < maxUpdate
 
     while(socket.BytesAvailable > 0)
         char(fread(socket,[1,19]))
+        disp("What is happening?")
         flag = 1;
     end
     
@@ -326,8 +319,6 @@ while currentUpdate < maxUpdate
     if strcmp(handles.globalinfo.mode,'PddControl') && ~get(handles.run,'value')
         break
     end
-%     while strcmp(get(handles.daqinfo.sAO,'IsRunning'),false)
-%     end
     aidata_raw = startForeground(handles.daqinfo.sAI);
     meanaidata_raw = mean(aidata_raw);
     aidata_meanoffset = aidata_raw - repmat(meanaidata_raw,[size(aidata_raw,1),1]);
@@ -585,6 +576,7 @@ while currentUpdate < maxUpdate
     if strcmp(handles.globalinfo.aoConfig,'camera')
         camTrigN = 5 + zeros(SPC*N,1);
         camTrigN(1:10)=0;
+        assignin('base','cameTrigN',camTrigN)
 %         camTrigInd1_nomod = camTrigInd1;
 %         while camTrigInd1_nomod <= SPC*N
 %             if camTrigFlag
@@ -604,6 +596,7 @@ while currentUpdate < maxUpdate
      %   end
     else
         camTrigN = [];
+        assignin('base','cameTrigN',camTrigN)
     end
     %**********************************************************************
     %**********************************************************************
