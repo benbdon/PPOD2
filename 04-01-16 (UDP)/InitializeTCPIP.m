@@ -1,8 +1,8 @@
-function t = InitializeTCPIP()
+function tcp = InitializeTCPIP()
 
 % Create TCP Object
-t = tcpip('0.0.0.0', 27015, 'NetworkRole', 'Server');
-set(t,'InputBufferSize',20);
-t.BytesAvailableFcnCount = 19;
-t.BytesAvailableFcnMode = 'byte';
-t.Timeout = 120;
+tcp = tcpip('0.0.0.0', 27015, 'NetworkRole', 'Server');
+set(tcp,'InputBufferSize',20);
+tcp.BytesAvailableFcnCount = 19;
+tcp.BytesAvailableFcnMode = 'byte';
+tcp.Timeout = 120;

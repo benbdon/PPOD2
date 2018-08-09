@@ -225,17 +225,94 @@ err = Inf;
 %Main Control Loop
 while currentUpdate < maxUpdate
 
-    while(socket.BytesAvailable > 0)
-        char(fread(socket,[1,19]))
-        disp("What is happening?")
+    if(socket.BytesAvailable > 0)
+        tcpRead = char(fread(socket,[1,19]));
+        disp('TCP message received');
+        disp(tcpRead);
+        % Scans TCP message for the first character - the identifier
+        tcpIdentifier = sscanf(tcpRead, '%c');
         flag = 1;
+        
+        % PPOD Equation Mode
+        if (tcpIdentifier(1) == 'E')
+            tcpMessage = sscanf(tcpRead, '%c%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c');
+            % Stores TCP message into horizontal acceleration, phase offset, and vertical acceleration
+            disp('Phase_Deg')
+            disp(tcpMessage(2))
+            Phase_Deg = tcpMessage(2); %PHASE_OFFSET
+            
+            disp('Vert_Accel')
+            disp(tcpMessage(3))
+            Vert_Accel = tcpMessage(3);%VERT_AMPL
+            
+            disp('Xsol')
+            disp(tcpMessage(4))
+            Xsol = tcpMessage(4); %HORIZ_AMPL_X
+            
+            disp('Ysol')
+            disp(tcpMessage(5))
+            Ysol = tcpMessage(5); %HORIZ_AMPL_Y
+            
+            disp('Vert_Alpha')
+            disp(tcpMessage(6))
+            Vert_Alpha = tcpMessage(6); %VERT_ALPHA
+            
+            disp('X_Alpha')
+            disp(tcpMessage(7))
+            X_Alpha = tcpMessage(7); %HORIZ_ALPHA_X
+            
+            disp('Y_Alpha')
+            disp(tcpMessage(8))
+            Y_Alpha = tcpMessage(8); %HORIZ_ALPHA_Y
+            
+            % Computes the X and Y horizontal acceleration components
+            %   - X: perpendicular to pony wall
+            %   - Y: toward/away from side-view camera (Mikrotron)
+            %Xsol = Horiz_Accel*cos(atan2(6,4));
+            %Ysol = Horiz_Accel*sin(atan2(6,4));
+
+            % Converts phase in degrees to radians
+            Phase_Rad = Phase_Deg/180*pi;
+
+            % Enters the 6 acceleration functions into something called handles.desSignalChar(1-6)
+            %   - which is what happens when enter string in GUI
+            set(handles.desSignalChar1,'string',sprintf('%.f*sin(w*t-%.f)',Xsol,Phase_Rad));
+            set(handles.desSignalChar2,'string',sprintf('%.f*sin(w*t-%.f)',Ysol,Phase_Rad));
+            set(handles.desSignalChar3,'string',sprintf('%.f*sin(w*t)',Vert_Accel));
+            set(handles.desSignalChar4,'string',sprintf('%.f*sin(w*t)',X_Alpha));
+            set(handles.desSignalChar5,'string',sprintf('%.f*sin(w*t)',Y_Alpha));
+            set(handles.desSignalChar6,'string',sprintf('%.f*sin(w*t-%.f)',Vert_Alpha,Phase_Rad));
+
+            % Call desCycUpdater.m function, passing in the handles.desSignalChar(1-6)
+            % values, which then fills out PddDesChar and PddDesCyc fields
+            %   - PddDesChar is a structure similar to this: {'0' '0' '0' '0' '0' '0'}
+            %   - PddDesCyc is an array [size: (10000/freq) X 6] that is used for
+            %     plotting the desired signals in the GUI
+            [handles.signalinfo.PddDesChar, handles.signalinfo.PddDesCyc] = desCycUpdater(handles);
+
+        % Saved Signal Mode - Selects the _th Saved Signal in Gui
+        elseif (tcpIdentifier(1) == 'S')
+            tcpMessage = sscanf(tcpRead, '%c%*c %f');   
+            %   - SavedSignalNumber corresponds to the _th Saved Signal in GUI (starts at 1)
+            tcpCommand = double(tcpMessage(2)); % Converts the saved signal number from a float to a double (required for handles.savedSignalsListbox)
+
+            % Get current saved signal value
+            savedSignalVal = get(handles.savedSignalsListbox,'value');
+
+            % If necessary to update saved signal, do so
+            if (savedSignalVal ~= tcpCommand) && (tcpCommand ~= 0)
+                set(handles.savedSignalsListbox,'value',tcpCommand);
+            end
+        end
+        
+        
     end
     
     %Send the measured error to "handle.tcp" after 5 runs
     absError = str2double(get(handles.currentError,'String'));
-    disp(absError)
-    if( flag == 1 && absError < 0.2)
+    if( flag == 1 && absError < 0.02) %TODO: No magic numbers
         fwrite(socket, 'Done');
+        disp('Done with test')
         flag = 0;
     end
     
