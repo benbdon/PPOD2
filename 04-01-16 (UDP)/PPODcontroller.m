@@ -1,4 +1,4 @@
-function handles = PPODcontroller(handles)
+function handles = PPODcontroller(hObject, handles)
 [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
 
 NTC = eval(get(handles.numTransientCycles,'string')); %Number of transient cycles (10)
@@ -304,8 +304,7 @@ while currentUpdate < maxUpdate
                 set(handles.savedSignalsListbox,'value',tcpCommand);
             end
         end
-        
-        
+        guidata(hObject, handles);
     end
     
     %Send the measured error to "handle.tcp" after 5 runs

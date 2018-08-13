@@ -115,7 +115,7 @@ if get(hObject,'value')
     set(handles.currentUpdatePddAddFreqs,'enable','off')
     set(handles.currentUpdatediddAddFreqs,'enable','off')
     
-    handles = PPODcontroller(handles);
+    handles = PPODcontroller(hObject, handles);
     InitializeGUI(handles)
 end
 
