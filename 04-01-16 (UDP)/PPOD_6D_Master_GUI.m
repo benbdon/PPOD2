@@ -56,9 +56,10 @@ set(handles.plottedSignals_Pdd,'value',1)
 set(handles.timeDomain,'value',1)
 set(handles.updatePlots,'value',1)
 
-%initialize all variables, TCP object, and GUI
+%initialize all variables and GUI
 handles = InitializeHandles(handles);
 InitializeGUI(handles);
+handles = InitializeTCPIP(handles);
 guidata(hObject, handles);
 
 % --- Outputs from this function are returned to the command line.
@@ -80,6 +81,7 @@ function run_Callback(hObject, eventdata, handles)
 
 desSignals = get(get(handles.desSignalsSelector,'selectedobject'),'tag');
 if get(hObject,'value')
+    set(hObject,'background','r')
     set(hObject,'string','Stop')
     set(handles.T,'enable','off')
     set(handles.samplingFreq,'enable','off')
@@ -114,12 +116,10 @@ if get(hObject,'value')
     set(handles.viewTransferFunctions,'enable','off')
     set(handles.currentUpdatePddAddFreqs,'enable','off')
     set(handles.currentUpdatediddAddFreqs,'enable','off')
-    
-    handles = PPODcontroller(hObject, handles);
-    InitializeGUI(handles)
+    [hObject, handles] = PPODcontroller(hObject, handles);
 end
 
-guidata(hObject, handles)
+
 
 
 function maxUpdate_Callback(hObject, eventdata, handles)
@@ -348,7 +348,6 @@ function desSignalChar1_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of desSignalChar1 as text
 %        str2double(get(hObject,'String')) returns contents of desSignalChar1 as a double
-
 %if text box for desired signal was left empty, make it a uiInitial_zero
 if isempty(get(hObject,'string'))
     desChar = '0';
@@ -394,8 +393,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function desSignalChar2_Callback(hObject, eventdata, handles)
 % hObject    handle to desSignalChar2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -436,7 +433,6 @@ end
 
 guidata(hObject, handles)
 
-
 % --- Executes during object creation, after setting all properties.
 function desSignalChar2_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to desSignalChar2 (see GCBO)
@@ -449,8 +445,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function desSignalChar3_Callback(hObject, eventdata, handles)
 % hObject    handle to desSignalChar3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -458,6 +452,7 @@ function desSignalChar3_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of desSignalChar3 as text
 %        str2double(get(hObject,'String')) returns contents of desSignalChar3 as a double
+disp('This happens')
 
 %if text box for desired signal was left empty, make it a uiInitial_zero
 if isempty(get(hObject,'string'))
@@ -543,7 +538,6 @@ end
 
 guidata(hObject, handles)
 
-
 % --- Executes during object creation, after setting all properties.
 function desSignalChar4_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to desSignalChar4 (see GCBO)
@@ -555,8 +549,6 @@ function desSignalChar4_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function desSignalChar5_Callback(hObject, eventdata, handles)
 % hObject    handle to desSignalChar5 (see GCBO)
@@ -598,7 +590,6 @@ end
 
 guidata(hObject, handles)
 
-
 % --- Executes during object creation, after setting all properties.
 function desSignalChar5_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to desSignalChar5 (see GCBO)
@@ -610,8 +601,6 @@ function desSignalChar5_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function desSignalChar6_Callback(hObject, eventdata, handles)
 % hObject    handle to desSignalChar6 (see GCBO)
@@ -652,7 +641,6 @@ if ~get(handles.run,'value')
 end
 
 guidata(hObject, handles)
-
 
 % --- Executes during object creation, after setting all properties.
 function desSignalChar6_CreateFcn(hObject, eventdata, handles)

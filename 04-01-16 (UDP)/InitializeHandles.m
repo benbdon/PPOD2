@@ -76,7 +76,7 @@ switch aiConfig
         handles.controllerinfo.numCollectedCycles = 5;%number of cycles collected
         handles.controllerinfo.numProcessingCycles = 25;%number of cycles after data collection during which time new control is computed
         handles.controllerinfo.cyclesPerUpdate = handles.controllerinfo.numTransientCycles + handles.controllerinfo.numCollectedCycles + handles.controllerinfo.numProcessingCycles;
-        handles.controllerinfo.maxUpdate = 1000;%number of updates before controller stops
+        handles.controllerinfo.maxUpdate = 100;%number of updates before controller stops
         handles.controllerinfo.currentUpdate = 0;%current controller update
         
         %signalinfo
@@ -200,7 +200,7 @@ switch aiConfig
         handles.controllerinfo.numCollectedCycles = 5;%number of cycles collected
         handles.controllerinfo.numProcessingCycles = 25;%number of cycles after data collection during which time new control is computed
         handles.controllerinfo.cyclesPerUpdate = handles.controllerinfo.numTransientCycles + handles.controllerinfo.numCollectedCycles + handles.controllerinfo.numProcessingCycles;
-        handles.controllerinfo.maxUpdate = 1000;%number of updates before controller stops
+        handles.controllerinfo.maxUpdate = 100;%number of updates before controller stops
         handles.controllerinfo.currentUpdate = 0;%current controller update
         
         %signalinfo

@@ -1,4 +1,4 @@
-function handles = PPODcontroller(hObject, handles)
+function [hObject,handles] = PPODcontroller(hObject, handles)
 [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
 
 NTC = eval(get(handles.numTransientCycles,'string')); %Number of transient cycles (10)
@@ -6,18 +6,18 @@ NCC = eval(get(handles.numCollectedCycles,'string')); %Number of collected cycle
 NPC = eval(get(handles.numProcessingCycles,'string')); %%TODO - Number of processing cycles (25)
 N = NTC + NCC + NPC; %Total number of cycles per update
 
-if strcmp(handles.globalinfo.aiConfig,'force')
-    FsensorCrosstalk = handles.calibrationinfo.FsensorCrosstalk;
-    lbf2N = handles.calibrationinfo.lbf2N;
-    lbfin2Nm = handles.calibrationinfo.lbfin2Nm;
-    V2m_LS = handles.calibrationinfo.V2m_LS;
-end
+% if strcmp(handles.globalinfo.aiConfig,'force')
+%     FsensorCrosstalk = handles.calibrationinfo.FsensorCrosstalk;
+%     lbf2N = handles.calibrationinfo.lbf2N;
+%     lbfin2Nm = handles.calibrationinfo.lbfin2Nm;
+%     V2m_LS = handles.calibrationinfo.V2m_LS;
+% end
 
 SPC = handles.signalinfo.samplesPerCycle; %number of samples collected per cycle 500 data points at 10k samples/sec
-T = handles.signalinfo.T; %period 0.05
-samplingFreq = handles.signalinfo.samplingFreq; %sampling freq 10k
-f1 = double(sym(1/T)); %some freq (20 Hz)
-fps = handles.camerainfo.fps; %TODO (1 frame per second??)
+T = handles.signalinfo.T; 
+samplingFreq = handles.signalinfo.samplingFreq; 
+f1 = double(sym(1/T)); 
+%fps = handles.camerainfo.fps; 
 
 %pre-emptively add cycles to allow for enough processing time if graphics
 %are being updated
@@ -66,8 +66,8 @@ G_ui2didd_all = handles.controllerinfo.G_ui2didd_all;
 switch handles.globalinfo.mode
     case {'PddControl','diddControl','diddAddFreqs'}
         uiHarmonics = handles.controllerinfo.uiHarmonics;
-    case {'uiControl','uiAddFreqs'}
-        uiHarmonics = 1;
+%     case {'uiControl','uiAddFreqs'}
+%         uiHarmonics = 1;
     otherwise
         error('no matching case')
 end
@@ -104,13 +104,11 @@ switch handles.globalinfo.mode
                 return
             end
         end
-        
-    case {'uiControl','uiAddFreqs'}
 end
 
-controllerUpdatesPerPlot = 1;
+controllerUpdatesPerPlot = 1; %TODO magic number
 
-%get PddDesCyc and uiCyc signals
+%get PddDesCyc and uiCyc signals %TODO MOST IMPORTANT!!!
 PddDesCyc = handles.signalinfo.PddDesCyc;
 diddDesCyc = handles.signalinfo.diddDesCyc;
 uiCyc = handles.signalinfo.uiCyc;
@@ -139,32 +137,33 @@ uiNCC_fft(~ismember(1:NCC*SPC,fftInds),:) = 0;
 %determine if initial control signals must change
 uiInitialMode = get(get(handles.uiInitialModeSelector,'selectedobject'),'tag');
 switch uiInitialMode
-    case 'uiInitial_guess'
-        for n = uiHarmonics
-            fftInd1 = NCC*n+1;
-            fftInd2 = NCC*(SPC-n)+1;
-            
-            switch handles.globalinfo.mode
-                case 'PddControl'
-                    uiNCC_fft(fftInd1,:) = (squeeze(G_ui2Pdd(:,:,n,1))\PddDesNCC_fft(fftInd1,:).').';
-                    uiNCC_fft(fftInd2,:) = conj(uiNCC_fft(fftInd1,:));
-                case {'diddControl','diddAddFreqs'}
-                    uiNCC_fft(fftInd1,:) = (squeeze(G_ui2didd(:,:,n,1))\diddDesNCC_fft(fftInd1,:).').';
-                    uiNCC_fft(fftInd2,:) = conj(uiNCC_fft(fftInd1,:));
-            end
-            
-            %reset uiCyc (1 cycle)
-            uiNCC = ifft(uiNCC_fft);
-            uiCyc = uiNCC(1:SPC,:);
-        end
-        
+%     case 'uiInitial_guess'
+%         for n = uiHarmonics
+%             fftInd1 = NCC*n+1;
+%             fftInd2 = NCC*(SPC-n)+1;
+%             
+%             switch handles.globalinfo.mode
+%                 case 'PddControl'
+%                     uiNCC_fft(fftInd1,:) = (squeeze(G_ui2Pdd(:,:,n,1))\PddDesNCC_fft(fftInd1,:).').';
+%                     uiNCC_fft(fftInd2,:) = conj(uiNCC_fft(fftInd1,:));
+% %                 case {'diddControl','diddAddFreqs'}
+% %                     uiNCC_fft(fftInd1,:) = (squeeze(G_ui2didd(:,:,n,1))\diddDesNCC_fft(fftInd1,:).').';
+% %                     uiNCC_fft(fftInd2,:) = conj(uiNCC_fft(fftInd1,:));
+%             end
+%             
+%             %reset uiCyc (1 cycle)
+%             uiNCC = ifft(uiNCC_fft);
+%             uiCyc = uiNCC(1:SPC,:);
+%         end
+%         
     case 'uiInitial_zero'
         uiCyc = 0*uiCyc;
         uiNCC = 0*uiNCC;
         uiNCC_fft = 0*uiNCC_fft;
-    case 'uiInitial_previous'
-    case 'uiInitial_user'
-        
+%     case 'uiInitial_previous'
+%         %TODO: was there something useful here ever?
+%     case 'uiInitial_user'
+%         %TODO: was there something useful here ever?
     otherwise
         error('selection does not match any case')
 end
@@ -178,7 +177,7 @@ assignin('base','uiN',uiN)
 %create clock ao signal with trigger just before cycle NTC
 clock1 = 0*uiN(:,1);
 clock1(NTC*SPC) = 5;
-assignin('base','clock1',clock)
+assignin('base','clock1',clock1)
 
 %INITIALIZES TRIGGER SIGNAL FOR CAMERA**********************************
 %***********************************************************************
@@ -189,20 +188,17 @@ switch handles.globalinfo.aoConfig
         camTrigN = 5 + zeros(SPC*N,1);
         camTrigN(1:10)=0;
         assignin('base','camTrigN',camTrigN);
-    case 'standard'
-        camTrigN = [];
+%     case 'standard'
+%         camTrigN = [];
+%         assignin('base','camTrigN',camTrigN);
     otherwise
         error('selection does not match any case')
 end
 %**************************************************************************
 %**************************************************************************
-%initialize a TCP connection
-socket = tcpip('0.0.0.0', 27015, 'NetworkRole', 'Server');
-socket.InputBufferSize = 19;
-socket.Timeout = 120;
-disp("Go turn on the Master program");
-fopen(socket);
-flag = 0;
+
+%Start TCP server and connect with Master PC (A) Client
+fopen(handles.socket);
 
 %selected saved signal from savedsignal listbox
 savedSignalVal = get(handles.savedSignalsListbox,'value');
@@ -218,59 +214,36 @@ startBackground(handles.daqinfo.sAO);
 
 currentUpdate = 0;
 set(handles.currentUpdate,'string',num2str(currentUpdate))
-
-maxUpdate = 1;
-err = Inf;
+TCPflag = 0; %Makes sure to read TCP buffer before writing to it
+maxUpdate = get(handles.maxUpdate,'string');
+err = 100;
 
 %Main Control Loop
 while currentUpdate < maxUpdate
-
-    if(socket.BytesAvailable > 0)
-        tcpRead = char(fread(socket,[1,19]));
-        disp('TCP message received');
-        disp(tcpRead);
-        % Scans TCP message for the first character - the identifier
-        tcpIdentifier = sscanf(tcpRead, '%c');
-        flag = 1;
+   
+    if(handles.socket.BytesAvailable > 0 && TCPflag == 0)
+        tcpRead = char(fread(handles.socket,[1,19]));
+        disp('TCP Message Received');
+        TCPflag = 1;
         
-        % PPOD Equation Mode
-        if (tcpIdentifier(1) == 'E')
+        % Parse TCP command into variables
+        if (tcpRead(1) == 'E')
             tcpMessage = sscanf(tcpRead, '%c%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c');
             % Stores TCP message into horizontal acceleration, phase offset, and vertical acceleration
-            disp('Phase_Deg')
-            disp(tcpMessage(2))
+            Identifier = tcpMessage(1); %IDENTIFIER
             Phase_Deg = tcpMessage(2); %PHASE_OFFSET
             
-            disp('Vert_Accel')
-            disp(tcpMessage(3))
             Vert_Accel = tcpMessage(3);%VERT_AMPL
             
-            disp('Xsol')
-            disp(tcpMessage(4))
             Xsol = tcpMessage(4); %HORIZ_AMPL_X
             
-            disp('Ysol')
-            disp(tcpMessage(5))
             Ysol = tcpMessage(5); %HORIZ_AMPL_Y
             
-            disp('Vert_Alpha')
-            disp(tcpMessage(6))
             Vert_Alpha = tcpMessage(6); %VERT_ALPHA
             
-            disp('X_Alpha')
-            disp(tcpMessage(7))
             X_Alpha = tcpMessage(7); %HORIZ_ALPHA_X
-            
-            disp('Y_Alpha')
-            disp(tcpMessage(8))
             Y_Alpha = tcpMessage(8); %HORIZ_ALPHA_Y
             
-            % Computes the X and Y horizontal acceleration components
-            %   - X: perpendicular to pony wall
-            %   - Y: toward/away from side-view camera (Mikrotron)
-            %Xsol = Horiz_Accel*cos(atan2(6,4));
-            %Ysol = Horiz_Accel*sin(atan2(6,4));
-
             % Converts phase in degrees to radians
             Phase_Rad = Phase_Deg/180*pi;
 
@@ -283,15 +256,8 @@ while currentUpdate < maxUpdate
             set(handles.desSignalChar5,'string',sprintf('%.f*sin(w*t)',Y_Alpha));
             set(handles.desSignalChar6,'string',sprintf('%.f*sin(w*t-%.f)',Vert_Alpha,Phase_Rad));
 
-            % Call desCycUpdater.m function, passing in the handles.desSignalChar(1-6)
-            % values, which then fills out PddDesChar and PddDesCyc fields
-            %   - PddDesChar is a structure similar to this: {'0' '0' '0' '0' '0' '0'}
-            %   - PddDesCyc is an array [size: (10000/freq) X 6] that is used for
-            %     plotting the desired signals in the GUI
-            [handles.signalinfo.PddDesChar, handles.signalinfo.PddDesCyc] = desCycUpdater(handles);
-
         % Saved Signal Mode - Selects the _th Saved Signal in Gui
-        elseif (tcpIdentifier(1) == 'S')
+        elseif (tcpRead(1) == 'S')
             tcpMessage = sscanf(tcpRead, '%c%*c %f');   
             %   - SavedSignalNumber corresponds to the _th Saved Signal in GUI (starts at 1)
             tcpCommand = double(tcpMessage(2)); % Converts the saved signal number from a float to a double (required for handles.savedSignalsListbox)
@@ -304,15 +270,6 @@ while currentUpdate < maxUpdate
                 set(handles.savedSignalsListbox,'value',tcpCommand);
             end
         end
-        guidata(hObject, handles);
-    end
-    
-    %Send the measured error to "handle.tcp" after 5 runs
-    absError = str2double(get(handles.currentError,'String'));
-    if( flag == 1 && absError < 0.02) %TODO: No magic numbers
-        fwrite(socket, 'Done');
-        disp('Done with test')
-        flag = 0;
     end
     
     switch handles.globalinfo.mode
@@ -358,39 +315,6 @@ while currentUpdate < maxUpdate
                 break
             end
     end
-    
-    %wait for data to be collected from analog input (the device stops once
-    %the data is logged)
-    pause(.1) %TODO - this is not good
-
-%     while get(handles.daqinfo.sAI,'ScansAcquired') < SPC*NCC && (get(handles.run,'value') || get(handles.uiAddFreqs,'value') || get(handles.diddAddFreqs,'value') || get(handles.PddAddFreqs,'value'))  
-%         if strcmp(get(handles.daqinfo.sAI,'IsRunning'),true) && get(handles.daqinfo.sAO,'ScansQueued') < SPC*N
-%             queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
-%             if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false) 
-%                 disp(['update ',num2str(currentUpdate),': ao turned off--increase N'])
-%                 startBackground(handles.daqinfo.sAO); %TODO - foreground or background
-%             end
-%             if strcmp(get(handles.daqinfo.sAO,'IsRunning'), true)
-%                 button = questdlg('Analog output card ran out of samples in queue.  Number of processing cycles should be increased.  Do you wish to continue operating?');
-%                 switch button
-%                     case {'No','Cancel'}
-%                         stop(handles.daqinfo.sAI)
-%                         set(handles.run,'value',0,'string','Run')
-%                         set(handles.samplingFreq,'enable','on')
-%                         set(handles.numCollectedCycles,'enable','on')
-%                         set(handles.T,'enable','on')
-%                         set(handles.desSignals_Pdd,'enable','on')
-%                         set(handles.desSignals_didd,'enable','on')
-%                         set(handles.desSignals_ui,'enable','on')
-%                         return
-%                     otherwise
-%                         startBackground(handles.daqinfo.sAO); %TODO - foreground or background
-%                 end
-%             end
-%         end
-%     end
-    %import NCC cycles of analog input signals.  columns of aidata
-    %correspond to ai_channel_names
     
     if strcmp(handles.globalinfo.mode,'PddControl') && ~get(handles.run,'value')
         break
@@ -518,11 +442,17 @@ while currentUpdate < maxUpdate
             end
             
             %error in Pdd
-            eNCC_fft = PddDesNCC_fft - PddNCC_fft; %TODO -> size doesn't match [2500x6] - [40000x6]
-            eNCC = PddDesNCC - PddNCC; %TODO -> size doesn't match [2500x6] - [40000x6]
+            eNCC_fft = PddDesNCC_fft - PddNCC_fft;
+            eNCC = PddDesNCC - PddNCC; 
             PddDesMax = max(max(handles.signalinfo.PddDesCyc));
             err = sum(sum(eNCC(1:SPC,:).^2))/(samplingFreq*T*PddDesMax^2);
-            
+                %Send "Done" over TCP after error settles below PddErrorTol
+            PddErrorTol = str2double(handles.PddErrorTol.String);
+            if( TCPflag == 1 && err < PddErrorTol)
+                fwrite(handles.socket, 'Done');
+                disp('Done with test')
+                TCPflag = 0;
+            end 
             %deal with user selecting a saved signal from listbox
             if get(handles.savedSignalsListbox,'value') ~= savedSignalVal
                 
@@ -542,7 +472,6 @@ while currentUpdate < maxUpdate
                 while get(handles.daqinfo.sAO,'ScansQueued') > 0
                 end
             end
-            
             
             %transfer function for this case
             G = G_ui2Pdd;
@@ -630,8 +559,8 @@ while currentUpdate < maxUpdate
     ind = find(abs(uiCyc) > uMax);
     uiCyc(ind) = signuiCyc(ind).*uMax(ind);
     if ~isempty(ind)
-        max(uiCyc);
-        uiCyc = 0*uiCyc;
+        %max(uiCyc);
+        uiCyc = 0*uiCyc; % Unused?
         warndlg('Saturation voltage exceeded.  Controller shut down.')
         break
     end
@@ -653,41 +582,13 @@ while currentUpdate < maxUpdate
         camTrigN = 5 + zeros(SPC*N,1);
         camTrigN(1:10)=0;
         assignin('base','cameTrigN',camTrigN)
-%         camTrigInd1_nomod = camTrigInd1;
-%         while camTrigInd1_nomod <= SPC*N
-%             if camTrigFlag
-%                 camTrigN(1:camTrigIndLeftover) = 0;
-%             end
-%             if camTrigInd1 > camTrigInd2
-%                 camTrigFlag = 1;
-%                 camTrigIndLeftover = mod(camTrigInd2,SPC);
-%                 camTrigN(camTrigInd1:end) = 0;
-%             else
-%                 camTrigN(camTrigInd1:camTrigInd2) = 0;
-%                 camTrigFlag = 0;
-%             end
-%             camTrigInd1_nomod = camTrigInd1 + samplesPerCamTrig;
-%             camTrigInd1 = mod(camTrigInd1+samplesPerCamTrig-1,SPC*N)+1;
-%             camTrigInd2 = mod(camTrigInd2+samplesPerCamTrig-1,SPC*N)+1;
-     %   end
     else
         camTrigN = [];
         assignin('base','cameTrigN',camTrigN)
     end
     %**********************************************************************
     %**********************************************************************
-    %put new output signals into queue
-%     queueOutputData(handles.daqinfo.sAO, [clock, uiN, camTrigN]);
-%     if strcmp(get(handles.daqinfo.sAO,'IsRunning'), false)
-%         disp(['update ',num2str(currentUpdate),': ao turned off--increase N (end of loop)'])
-%         while get(handles.daqinfo.sAO,'ScansQueued') < SPC
-%             queueOutputData(handles.sAO, [clock, uiN, camTrigN]);
-%         end
-%         startBackground(handles.daqinfo.sAO); %TODO - foreground or background
-%     end
-    
-    %restart analog input device
-    %startBackground(handles.daqinfo.sAI); %TODO - foreground or background
+
     
     currentUpdate = currentUpdate + 1;
     

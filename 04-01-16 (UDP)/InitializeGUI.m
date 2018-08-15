@@ -103,7 +103,7 @@ set(handles.maxUpdate,'string',num2str(handles.controllerinfo.maxUpdate),'enable
 set(handles.currentUpdate,'string',num2str(handles.controllerinfo.currentUpdate),'enable','on')
 set(handles.currentUpdatediddAddFreqs,'string',num2str(handles.controllerinfo.currentUpdate),'enable','on')
 set(handles.currentUpdatePddAddFreqs,'string',num2str(handles.controllerinfo.currentUpdate),'enable','on')
-set(handles.run,'value',0,'enable','on','string','Run')
+set(handles.run,'value',0,'enable','on','string','Enable Remote Control','Backgroundcolor','g')
 
 %Frequency Response panel
 set(handles.uiAddFreqs,'value',0,'enable','on')
