@@ -1,17 +1,17 @@
-function [hObject,handles] = PPODcontroller(hObject, handles)
-[NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles);
+function PPODcontroller(~, handles)
+[NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, ~, NDIS] = signalCounter(handles);
 
 NTC = eval(get(handles.numTransientCycles,'string')); %Number of transient cycles (10)
 NCC = eval(get(handles.numCollectedCycles,'string')); %Number of collected cycles (5)
 NPC = eval(get(handles.numProcessingCycles,'string')); %%TODO - Number of processing cycles (25)
 N = NTC + NCC + NPC; %Total number of cycles per update
 
-% if strcmp(handles.globalinfo.aiConfig,'force')
-%     FsensorCrosstalk = handles.calibrationinfo.FsensorCrosstalk;
-%     lbf2N = handles.calibrationinfo.lbf2N;
-%     lbfin2Nm = handles.calibrationinfo.lbfin2Nm;
-%     V2m_LS = handles.calibrationinfo.V2m_LS;
-% end
+if strcmp(handles.globalinfo.aiConfig,'force')
+    FsensorCrosstalk = handles.calibrationinfo.FsensorCrosstalk;
+    lbf2N = handles.calibrationinfo.lbf2N;
+    lbfin2Nm = handles.calibrationinfo.lbfin2Nm;
+    V2m_LS = handles.calibrationinfo.V2m_LS;
+end
 
 SPC = handles.signalinfo.samplesPerCycle; %number of samples collected per cycle 500 data points at 10k samples/sec
 T = handles.signalinfo.T; 
@@ -66,8 +66,8 @@ G_ui2didd_all = handles.controllerinfo.G_ui2didd_all;
 switch handles.globalinfo.mode
     case {'PddControl','diddControl','diddAddFreqs'}
         uiHarmonics = handles.controllerinfo.uiHarmonics;
-%     case {'uiControl','uiAddFreqs'}
-%         uiHarmonics = 1;
+    case {'uiControl','uiAddFreqs'}
+        uiHarmonics = 1;
     otherwise
         error('no matching case')
 end
@@ -137,33 +137,33 @@ uiNCC_fft(~ismember(1:NCC*SPC,fftInds),:) = 0;
 %determine if initial control signals must change
 uiInitialMode = get(get(handles.uiInitialModeSelector,'selectedobject'),'tag');
 switch uiInitialMode
-%     case 'uiInitial_guess'
-%         for n = uiHarmonics
-%             fftInd1 = NCC*n+1;
-%             fftInd2 = NCC*(SPC-n)+1;
-%             
-%             switch handles.globalinfo.mode
-%                 case 'PddControl'
-%                     uiNCC_fft(fftInd1,:) = (squeeze(G_ui2Pdd(:,:,n,1))\PddDesNCC_fft(fftInd1,:).').';
-%                     uiNCC_fft(fftInd2,:) = conj(uiNCC_fft(fftInd1,:));
-% %                 case {'diddControl','diddAddFreqs'}
-% %                     uiNCC_fft(fftInd1,:) = (squeeze(G_ui2didd(:,:,n,1))\diddDesNCC_fft(fftInd1,:).').';
-% %                     uiNCC_fft(fftInd2,:) = conj(uiNCC_fft(fftInd1,:));
-%             end
-%             
-%             %reset uiCyc (1 cycle)
-%             uiNCC = ifft(uiNCC_fft);
-%             uiCyc = uiNCC(1:SPC,:);
-%         end
-%         
+    case 'uiInitial_guess'
+        for n = uiHarmonics
+            fftInd1 = NCC*n+1;
+            fftInd2 = NCC*(SPC-n)+1;
+            
+            switch handles.globalinfo.mode
+                case 'PddControl'
+                    uiNCC_fft(fftInd1,:) = (squeeze(G_ui2Pdd(:,:,n,1))\PddDesNCC_fft(fftInd1,:).').';
+                    uiNCC_fft(fftInd2,:) = conj(uiNCC_fft(fftInd1,:));
+                case {'diddControl','diddAddFreqs'}
+                    uiNCC_fft(fftInd1,:) = (squeeze(G_ui2didd(:,:,n,1))\diddDesNCC_fft(fftInd1,:).').';
+                    uiNCC_fft(fftInd2,:) = conj(uiNCC_fft(fftInd1,:));
+            end
+            
+            %reset uiCyc (1 cycle)
+            uiNCC = ifft(uiNCC_fft);
+            uiCyc = uiNCC(1:SPC,:);
+        end
+        
     case 'uiInitial_zero'
         uiCyc = 0*uiCyc;
         uiNCC = 0*uiNCC;
         uiNCC_fft = 0*uiNCC_fft;
-%     case 'uiInitial_previous'
-%         %TODO: was there something useful here ever?
-%     case 'uiInitial_user'
-%         %TODO: was there something useful here ever?
+    case 'uiInitial_previous'
+        %TODO: was there something useful here ever?
+    case 'uiInitial_user'
+        %TODO: was there something useful here ever?
     otherwise
         error('selection does not match any case')
 end
@@ -188,9 +188,9 @@ switch handles.globalinfo.aoConfig
         camTrigN = 5 + zeros(SPC*N,1);
         camTrigN(1:10)=0;
         assignin('base','camTrigN',camTrigN);
-%     case 'standard'
-%         camTrigN = [];
-%         assignin('base','camTrigN',camTrigN);
+    case 'standard'
+        camTrigN = [];
+        assignin('base','camTrigN',camTrigN);
     otherwise
         error('selection does not match any case')
 end
@@ -230,7 +230,7 @@ while currentUpdate < maxUpdate
         if (tcpRead(1) == 'E')
             tcpMessage = sscanf(tcpRead, '%c%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c %f%*c');
             % Stores TCP message into horizontal acceleration, phase offset, and vertical acceleration
-            Identifier = tcpMessage(1); %IDENTIFIER
+            %Identifier = tcpMessage(1); %IDENTIFIER
             Phase_Deg = tcpMessage(2); %PHASE_OFFSET
             
             Vert_Accel = tcpMessage(3);%VERT_AMPL
@@ -446,12 +446,14 @@ while currentUpdate < maxUpdate
             eNCC = PddDesNCC - PddNCC; 
             PddDesMax = max(max(handles.signalinfo.PddDesCyc));
             err = sum(sum(eNCC(1:SPC,:).^2))/(samplingFreq*T*PddDesMax^2);
-                %Send "Done" over TCP after error settles below PddErrorTol
+            
+            %Send "Done" over TCP after error settles below PddErrorTol
             PddErrorTol = str2double(handles.PddErrorTol.String);
             if( TCPflag == 1 && err < PddErrorTol)
                 fwrite(handles.socket, 'Done');
                 disp('Done with test')
                 TCPflag = 0;
+                err = 100; %ensure the error is too high to trigger as a new TCP message comes in
             end 
             %deal with user selecting a saved signal from listbox
             if get(handles.savedSignalsListbox,'value') ~= savedSignalVal
@@ -511,7 +513,6 @@ while currentUpdate < maxUpdate
             %eNCC = 0*uiNCC;
             err = 0;
     end
-    
     
     %compute control signals (if necessary)
     switch handles.globalinfo.mode
@@ -604,9 +605,5 @@ while currentUpdate < maxUpdate
     set(handles.currentError,'string',num2str(err,4))
 
 end
-
-stop(handles.daqinfo.sAI)
-stop(handles.daqinfo.sAO)
 delete(lhAO);
-
-set(handles.run,'value',0,'string','Run')
+set(handles.run,'value',1,'string','Click X to Close','enable','off')
