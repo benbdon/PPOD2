@@ -74,7 +74,7 @@ varargout{1} = handles;
 
 
 % --- Executes on button press in run.
-function run_Callback(hObject, eventdata, handles)
+function run_Callback(hObject, ~, handles)  %#ok<DEFNU>
 % hObject    handle to run (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -116,13 +116,17 @@ if get(hObject,'value')
     set(handles.viewTransferFunctions,'enable','off')
     set(handles.currentUpdatePddAddFreqs,'enable','off')
     set(handles.currentUpdatediddAddFreqs,'enable','off')
-    [hObject, handles] = PPODcontroller(hObject, handles);
+    warndlg({'1. Read all the directions'; 
+        '2. Make sure the amplifiers are on.'; 
+        '3. Close this dialog box by pressing X';
+        '4. Go to the Master PC (A) and run Master_Code solution'})
+    PPODcontroller(hObject, handles);
 end
 
 
 
 
-function maxUpdate_Callback(hObject, eventdata, handles)
+function maxUpdate_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to maxUpdate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -142,7 +146,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function maxUpdate_CreateFcn(hObject, eventdata, handles)
+function maxUpdate_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to maxUpdate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -154,7 +158,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-function samplingFreq_Callback(hObject, eventdata, handles)
+function samplingFreq_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to samplingFreq (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -184,12 +188,12 @@ if samplingFreq ~= handles.signalinfo.samplingFreq
     dt = 1/samplingFreq;
     handles.signalinfo.tCyc = 0:dt:T-dt;
     tCyc = handles.signalinfo.tCyc;
-    t = tCyc; %so that you can evaluate desired signals
+    %t = tCyc; %so that you can evaluate desired signals
     handles.signalinfo.samplesPerCycle = length(tCyc);
     handles.globalinfo.filename = 'temp';
     
     %update signalinfo
-    [NUIS NPMIDDS NPDDS NAMIDDS NDIDDS NRFS NFS NDIS] = signalCounter(handles); %outputs number of signals
+    [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, ~, NFS, NDIS] = signalCounter(handles); %outputs number of signals
     SPC = handles.signalinfo.samplesPerCycle;
     
     handles.signalinfo.PddCyc = zeros(SPC, NPDDS);%one cycle of plate acceleration data (columns correspond to PddSignals)
@@ -232,7 +236,7 @@ end
 guidata(hObject,handles)
 
 % --- Executes on selection change in constants.
-function constants_Callback(hObject, eventdata, handles)
+function constants_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to constants (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -263,8 +267,8 @@ if ~strcmp(char(constants),char(handles.signalinfo.constants))
     handles.signalinfo.u = zeros(length(t), numel(uiSignals));
     
     constants = handles.signalinfo.constants;
-    T = handles.signalinfo.T;
-    f = 1/T; %delete???
+    %T = handles.signalinfo.T;
+    %f = 1/T;
     for i = 1:length(constants)
         eval([constants{i},';'])
     end
@@ -293,7 +297,7 @@ guidata(hObject, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function constants_CreateFcn(hObject, eventdata, handles)
+function constants_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to constants (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -306,7 +310,7 @@ end
 
 
 % --- Executes on selection change in savedSignalsListbox.
-function savedSignalsListbox_Callback(hObject, eventdata, handles)
+function savedSignalsListbox_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to savedSignalsListbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -328,7 +332,7 @@ guidata(hObject, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function savedSignalsListbox_CreateFcn(hObject, eventdata, handles)
+function savedSignalsListbox_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to savedSignalsListbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -341,7 +345,7 @@ end
 
 
 
-function desSignalChar1_Callback(hObject, eventdata, handles)
+function desSignalChar1_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to desSignalChar1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -382,7 +386,7 @@ guidata(hObject, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function desSignalChar1_CreateFcn(hObject, eventdata, handles)
+function desSignalChar1_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to desSignalChar1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -393,7 +397,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function desSignalChar2_Callback(hObject, eventdata, handles)
+function desSignalChar2_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to desSignalChar2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -434,7 +438,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function desSignalChar2_CreateFcn(hObject, eventdata, handles)
+function desSignalChar2_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to desSignalChar2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -445,7 +449,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function desSignalChar3_Callback(hObject, eventdata, handles)
+function desSignalChar3_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to desSignalChar3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -487,7 +491,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function desSignalChar3_CreateFcn(hObject, eventdata, handles)
+function desSignalChar3_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to desSignalChar3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -498,7 +502,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function desSignalChar4_Callback(hObject, eventdata, handles)
+function desSignalChar4_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to desSignalChar4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -539,7 +543,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function desSignalChar4_CreateFcn(hObject, eventdata, handles)
+function desSignalChar4_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to desSignalChar4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -550,7 +554,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function desSignalChar5_Callback(hObject, eventdata, handles)
+function desSignalChar5_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to desSignalChar5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -591,7 +595,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function desSignalChar5_CreateFcn(hObject, eventdata, handles)
+function desSignalChar5_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to desSignalChar5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -602,7 +606,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function desSignalChar6_Callback(hObject, eventdata, handles)
+function desSignalChar6_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to desSignalChar6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -643,7 +647,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function desSignalChar6_CreateFcn(hObject, eventdata, handles)
+function desSignalChar6_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to desSignalChar6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -656,7 +660,7 @@ end
 
 
 
-function T_Callback(hObject, eventdata, handles)
+function T_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to T (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -712,7 +716,7 @@ if T ~= handles.signalinfo.T
         set(handles.F_ui,'string',[mat2str(handles.controllerinfo.F_ui),' Hz'])
         
         %update signalinfo
-        [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, NRFS, NFS, NDIS] = signalCounter(handles); %outputs number of signals
+        [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, ~, NFS, NDIS] = signalCounter(handles); %outputs number of signals
         SPC = handles.signalinfo.samplesPerCycle;
         
         handles.signalinfo.PddCyc = zeros(SPC, NPDDS);%one cycle of plate acceleration data (columns correspond to PddSignals)
@@ -768,7 +772,7 @@ guidata(hObject, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function T_CreateFcn(hObject, eventdata, handles)
+function T_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to T (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -781,7 +785,7 @@ end
 
 
 % --- Executes on button press in floatAxes.
-function floatAxes_Callback(hObject, eventdata, handles)
+function floatAxes_Callback(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to floatAxes (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -790,7 +794,7 @@ PlotAccSignals(handles)
 PlotControlSignals(handles)
 
 
-function uiHarmonics_Callback(hObject, eventdata, handles)
+function uiHarmonics_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to uiHarmonics (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -827,7 +831,7 @@ set(handles.F_ui,'string',[mat2str(handles.controllerinfo.F_ui),' Hz'])
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function uiHarmonics_CreateFcn(hObject, eventdata, handles)
+function uiHarmonics_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to uiHarmonics (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -840,7 +844,7 @@ end
 
 
 % --- Executes on button press in uiAddFreqs.
-function uiAddFreqs_Callback(hObject, eventdata, handles)
+function uiAddFreqs_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to uiAddFreqs (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -852,7 +856,7 @@ if get(hObject,'value')
     GuiInputMag = handles.controllerinfo.GuiInputMag;
     freqsOld = handles.controllerinfo.F_ui_all;
     NPCOld = handles.controllerinfo.numProcessingCycles;
-    answer = inputdlg({['New frequencies to add (current frequencies: ',mat2str(freqsOld),'):'];'Input voltage:'},'Frequency Response Data Collection',[1],{'20';num2str(GuiInputMag)});
+    answer = inputdlg({['New frequencies to add (current frequencies: ',mat2str(freqsOld),'):'];'Input voltage:'},'Frequency Response Data Collection',1,{'20';num2str(GuiInputMag)});
     
     if isempty(answer)
         set(hObject,'value',0,'enable','on')
@@ -860,7 +864,7 @@ if get(hObject,'value')
     else
         %check to make sure that transfer functions are the right size--if
         %not, set them equal to zero
-        [NUIS NPMIDDS NPDDS NAMIDDS NDIDDS NRFS NFS NDIS] = signalCounter(handles);
+        [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, ~, NFS, NDIS] = signalCounter(handles);
         NHCPF = handles.controllerinfo.harmonicsCollectedPerFreq; %number of harmonics recorded per frequency
         
         numuiFreqs = numel(handles.controllerinfo.F_ui_all);
@@ -1028,10 +1032,10 @@ if get(hObject,'value')
             end
         end
         
-        G_ui2Pdd_all = handles.controllerinfo.G_ui2Pdd_all;
-        G_ui2pmidd_all = handles.controllerinfo.G_ui2pmidd_all;
-        G_ui2didd_all = handles.controllerinfo.G_ui2didd_all;
-        G_ui2amidd_all = handles.controllerinfo.G_ui2amidd_all;
+        G_ui2Pdd_all = handles.controllerinfo.G_ui2Pdd_all; %#ok<NASGU>
+        G_ui2pmidd_all = handles.controllerinfo.G_ui2pmidd_all; %#ok<NASGU>
+        G_ui2didd_all = handles.controllerinfo.G_ui2didd_all; %#ok<NASGU>
+        G_ui2amidd_all = handles.controllerinfo.G_ui2amidd_all; %#ok<NASGU>
         
         switch handles.globalinfo.aiConfig
             case 'standard'
@@ -1062,7 +1066,7 @@ end
 
 
 % --- Executes on button press in exporthandles.
-function exporthandles_Callback(hObject, eventdata, handles)
+function exporthandles_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to exporthandles (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1070,7 +1074,7 @@ function exporthandles_Callback(hObject, eventdata, handles)
 assignin('base','handles',handles)
 
 
-function uMax_Callback(hObject, eventdata, handles)
+function uMax_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to uMax (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1092,7 +1096,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function uMax_CreateFcn(hObject, eventdata, handles)
+function uMax_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to uMax (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1105,7 +1109,7 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function samplingFreq_CreateFcn(hObject, eventdata, handles)
+function samplingFreq_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to samplingFreq (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1118,15 +1122,15 @@ end
 
 
 % --- Executes on button press in saveSignals.
-function saveSignals_Callback(hObject, eventdata, handles)
+function saveSignals_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to saveSignals (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[file, path] = uiputfile([cd,'\SavedSignals_Pdd\',handles.globalinfo.filename,'.mat'],'Save Handles As');
+[file, ~] = uiputfile([cd,'\SavedSignals_Pdd\',handles.globalinfo.filename,'.mat'],'Save Handles As');
 if file ~= 0
     handles.globalinfo.filename = file;
-    signalinfo = handles.signalinfo;
+    signalinfo = handles.signalinfo; %#ok<NASGU>
     save([cd,'\SavedSignals_Pdd\',file],'signalinfo')
 end
 populateSavedSignalsListbox(handles)
@@ -1135,7 +1139,7 @@ guidata(hObject, handles)
 
 
 
-function numTransientCycles_Callback(hObject, eventdata, handles)
+function numTransientCycles_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to numTransientCycles (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1156,7 +1160,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function numTransientCycles_CreateFcn(hObject, eventdata, handles)
+function numTransientCycles_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to numTransientCycles (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1169,7 +1173,7 @@ end
 
 
 
-function numCollectedCycles_Callback(hObject, eventdata, handles)
+function numCollectedCycles_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to numCollectedCycles (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1190,7 +1194,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function numCollectedCycles_CreateFcn(hObject, eventdata, handles)
+function numCollectedCycles_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to numCollectedCycles (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1203,7 +1207,7 @@ end
 
 
 
-function numProcessingCycles_Callback(hObject, eventdata, handles)
+function numProcessingCycles_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to numProcessingCycles (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1224,7 +1228,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function numProcessingCycles_CreateFcn(hObject, eventdata, handles)
+function numProcessingCycles_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to numProcessingCycles (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1237,7 +1241,7 @@ end
 
 
 
-function k_Callback(hObject, eventdata, handles)
+function k_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to k (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1256,7 +1260,7 @@ end
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
-function k_CreateFcn(hObject, eventdata, handles)
+function k_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to k (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1269,7 +1273,7 @@ end
 
 
 % --- Executes on button press in signaldetails.
-function signaldetails_Callback(hObject, eventdata, handles)
+function signaldetails_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to signaldetails (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1277,18 +1281,8 @@ function signaldetails_Callback(hObject, eventdata, handles)
 SignalDetails_GUI(handles)
 
 
-% --- Executes when selected object is changed in uiInitialModeSelector.
-function uiInitialModeSelector_SelectionChangeFcn(hObject, eventdata, handles)
-% hObject    handle to the selected object in uiInitialModeSelector
-% eventdata  structure with the following fields (see UIBUTTONGROUP)
-%	EventName: string 'SelectionChanged' (read only)
-%	OldValue: handle of the previously selected object or empty if none was selected
-%	NewValue: handle of the currently selected object
-% handles    structure with handles and user data (see GUIDATA)
-
-
 % --- Executes when selected object is changed in plottedSignalSelector.
-function plottedSignalSelector_SelectionChangeFcn(hObject, eventdata, handles)
+function plottedSignalSelector_SelectionChangeFcn(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to the selected object in plottedSignalSelector
 % eventdata  structure with the following fields (see UIBUTTONGROUP)
 %	EventName: string 'SelectionChanged' (read only)
@@ -1297,9 +1291,8 @@ function plottedSignalSelector_SelectionChangeFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 InitializePlotAccSignals(handles)
 
-
 % --- Executes when selected object is changed in desSignalsSelector.
-function desSignalsSelector_SelectionChangeFcn(hObject, eventdata, handles)
+function desSignalsSelector_SelectionChangeFcn(hObject, eventdata, handles) %#ok<DEFNU>
 
 desSignals = get(hObject,'tag');
 switch desSignals
@@ -1321,7 +1314,7 @@ guidata(hObject,handles)
 
 
 
-function plottedHarmonics_Callback(hObject, eventdata, handles)
+function plottedHarmonics_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to plottedHarmonics (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1338,7 +1331,7 @@ if strcmp(handles.globalinfo.aiConfig,'force')
 end
 
 % --- Executes during object creation, after setting all properties.
-function plottedHarmonics_CreateFcn(hObject, eventdata, handles)
+function plottedHarmonics_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to plottedHarmonics (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1352,7 +1345,7 @@ end
 
 
 % --- Executes when selected object is changed in freqTimeSelector.
-function freqTimeSelector_SelectionChangeFcn(hObject, eventdata, handles)
+function freqTimeSelector_SelectionChangeFcn(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to the selected object in freqTimeSelector
 % eventdata  structure with the following fields (see UIBUTTONGROUP)
 %	EventName: string 'SelectionChanged' (read only)
@@ -1388,17 +1381,9 @@ end
 
 
 
-function harmonicsCollectedPerFreq_Callback(hObject, eventdata, handles)
-% hObject    handle to harmonicsCollectedPerFreq (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of harmonicsCollectedPerFreq as text
-%        str2double(get(hObject,'String')) returns contents of harmonicsCollectedPerFreq as a double
-
 
 % --- Executes during object creation, after setting all properties.
-function harmonicsCollectedPerFreq_CreateFcn(hObject, eventdata, handles)
+function harmonicsCollectedPerFreq_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to harmonicsCollectedPerFreq (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1411,7 +1396,7 @@ end
 
 
 
-function fps_Callback(hObject, eventdata, handles)
+function fps_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to fps (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1439,7 +1424,7 @@ guidata(hObject,handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function fps_CreateFcn(hObject, eventdata, handles)
+function fps_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to fps (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1452,7 +1437,7 @@ end
 
 
 % --- Executes on button press in updatePlots.
-function updatePlots_Callback(hObject, eventdata, handles)
+function updatePlots_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to updatePlots (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1477,19 +1462,8 @@ if get(hObject,'value') && ~get(handles.run,'value')
     PlotAccSignals(handles)
 end
 
-
-
-function maxUpdatediddAddFreqs_Callback(hObject, eventdata, handles)
-% hObject    handle to maxUpdatediddAddFreqs (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of maxUpdatediddAddFreqs as text
-%        str2double(get(hObject,'String')) returns contents of maxUpdatediddAddFreqs as a double
-
-
 % --- Executes during object creation, after setting all properties.
-function maxUpdatediddAddFreqs_CreateFcn(hObject, eventdata, handles)
+function maxUpdatediddAddFreqs_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to maxUpdatediddAddFreqs (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1500,19 +1474,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function diddErrorTol_Callback(hObject, eventdata, handles)
-% hObject    handle to diddErrorTol (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of diddErrorTol as text
-%        str2double(get(hObject,'String')) returns contents of diddErrorTol as a double
-
-
 % --- Executes during object creation, after setting all properties.
-function diddErrorTol_CreateFcn(hObject, eventdata, handles)
+function diddErrorTol_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to diddErrorTol (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1525,7 +1488,7 @@ end
 
 
 % --- Executes on button press in uiDeleteFreqs.
-function uiDeleteFreqs_Callback(hObject, eventdata, handles)
+function uiDeleteFreqs_Callback(hObject, ~, handles) %#ok<DEFNU>
 F_ui_all = handles.controllerinfo.F_ui_all;
 answer = inputdlg({['Frequencies to delete: (current frequencies: ',mat2str(F_ui_all),')']},'Delete Frequencies',1,{'[]'});
 if ~isempty(answer)
@@ -1538,11 +1501,11 @@ if ~isempty(answer)
     handles.controllerinfo.G_ui2didd_all(:,:,ind_all,:) = [];
     handles.controllerinfo.G_ui2amidd_all(:,:,ind_all,:) = [];
     
-    F_ui_all = handles.controllerinfo.F_ui_all;
-    G_ui2Pdd_all = handles.controllerinfo.G_ui2Pdd_all;
-    G_ui2pmidd_all = handles.controllerinfo.G_ui2pmidd_all;
-    G_ui2didd_all = handles.controllerinfo.G_ui2didd_all;
-    G_ui2amidd_all = handles.controllerinfo.G_ui2amidd_all;
+    F_ui_all = handles.controllerinfo.F_ui_all; %#ok<NASGU>
+    G_ui2Pdd_all = handles.controllerinfo.G_ui2Pdd_all; %#ok<NASGU>
+    G_ui2pmidd_all = handles.controllerinfo.G_ui2pmidd_all; %#ok<NASGU>
+    G_ui2didd_all = handles.controllerinfo.G_ui2didd_all; %#ok<NASGU>
+    G_ui2amidd_all = handles.controllerinfo.G_ui2amidd_all; %#ok<NASGU>
     
     switch handles.globalinfo.aiConfig
         case 'standard'
@@ -1558,7 +1521,7 @@ guidata(hObject, handles)
 
 
 % --- Executes when selected object is changed in analogInputModeSelector.
-function analogInputModeSelector_SelectionChangeFcn(hObject, eventdata, handles)
+function analogInputModeSelector_SelectionChangeFcn(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to the selected object in analogInputModeSelector
 % eventdata  structure with the following fields (see UIBUTTONGROUP)
 %	EventName: string 'SelectionChanged' (read only)
@@ -1566,13 +1529,13 @@ function analogInputModeSelector_SelectionChangeFcn(hObject, eventdata, handles)
 %	NewValue: handle of the currently selected object
 % handles    structure with handles and user data (see GUIDATA)
 
-[handles,s] = InitializeHandles(handles);
+handles = InitializeHandles(handles);
 InitializeGUI(handles)
 
 guidata(hObject, handles)
 
 % --- Executes on button press in diddAddFreqs.
-function diddAddFreqs_Callback(hObject, eventdata, handles)
+function diddAddFreqs_Callback(hObject, ~, handles) %#ok<DEFNU>
 
 if get(hObject,'value')
     mode = handles.globalinfo.mode;%store previous mode to be returned to once completed
@@ -1580,7 +1543,7 @@ if get(hObject,'value')
     GdiddInputMag = handles.controllerinfo.GdiddInputMag;
     freqsOld = handles.controllerinfo.F_didd_all;
     NPCOld = handles.controllerinfo.numProcessingCycles;
-    answer = inputdlg({['New frequencies to add (current frequencies: ',mat2str(freqsOld),'):'];'Input acceleration amplitude:'},'Frequency Response Data Collection',[1],{'20';num2str(GdiddInputMag)});
+    answer = inputdlg({['New frequencies to add (current frequencies: ',mat2str(freqsOld),'):'];'Input acceleration amplitude:'},'Frequency Response Data Collection',1,{'20';num2str(GdiddInputMag)});
     
     if isempty(answer)
         set(hObject,'value',0,'enable','on')
@@ -1588,7 +1551,7 @@ if get(hObject,'value')
     else
         %check to make sure that transfer functions are the right size--if
         %not, set them equal to zero
-        [NUIS NPMIDDS NPDDS NAMIDDS NDIDDS NRFS NFS NDIS] = signalCounter(handles);
+        [~, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, ~, NFS, ~] = signalCounter(handles);
         NHCPF = handles.controllerinfo.harmonicsCollectedPerFreq; %number of harmonics recorded per frequency
         
         numuiFreqs = numel(handles.controllerinfo.F_ui_all);
@@ -1668,7 +1631,7 @@ if get(hObject,'value')
         %set(handles.plottedSignals_didd,'value',1)
         
         %loop to collect new transfer function data
-        [NUIS NPMIDDS NPDDS NAMIDDS NDIDDS NRFS NFS] = signalCounter(handles);
+        [NUIS, NPMIDDS, NPDDS, NAMIDDS, NDIDDS, ~, NFS] = signalCounter(handles);
         
         NHCPF = handles.controllerinfo.harmonicsCollectedPerFreq; %number of harmonics recorded per frequency
         G_didd2PddNew = zeros(NPDDS,NDIDDS,length(freqsNew), NHCPF);
@@ -1710,7 +1673,7 @@ if get(hObject,'value')
                 handles.signalinfo.amiddCyc = zeros(SPC,NAMIDDS);
                 handles.signalinfo.fCyc = zeros(SPC,NFS);
                 
-                diddDesChari = [num2str(GdiddInputMag),'*sin(2*pi*',char(sym(f)),'*t)'];
+                diddDesChari = [num2str(GdiddInputMag),'*sin(2*pi*',char(sym(f)),'*t)']; %#ok<NASGU>
                 eval(['set(handles.desSignalChar',num2str(i),',''string'',diddDesChari)'])
                 
                 if get(handles.updatePlots,'value')
@@ -1770,11 +1733,11 @@ if get(hObject,'value')
             end
         end
         
-        G_didd2Pdd_all = handles.controllerinfo.G_didd2Pdd_all;
-        G_didd2amidd_all = handles.controllerinfo.G_didd2amidd_all;
-        G_didd2pmidd_all = handles.controllerinfo.G_didd2pmidd_all;
+        G_didd2Pdd_all = handles.controllerinfo.G_didd2Pdd_all; %#ok<NASGU>
+        G_didd2amidd_all = handles.controllerinfo.G_didd2amidd_all; %#ok<NASGU>
+        G_didd2pmidd_all = handles.controllerinfo.G_didd2pmidd_all; %#ok<NASGU>
         if strcmp(handles.globalinfo.aiConfig,'force')
-            G_didd2f_all = handles.controllerinfo.G_didd2f_all;
+            G_didd2f_all = handles.controllerinfo.G_didd2f_all; %#ok<NASGU>
         end
         
         switch handles.globalinfo.aiConfig
@@ -1807,7 +1770,7 @@ end
 
 
 % --- Executes on button press in diddDeleteFreqs.
-function diddDeleteFreqs_Callback(hObject, eventdata, handles)
+function diddDeleteFreqs_Callback(hObject, ~, handles) %#ok<DEFNU>
 F_didd_all = handles.controllerinfo.F_didd_all;
 answer = inputdlg({['Frequencies to delete: (current frequencies: ',mat2str(F_didd_all),')']},'Delete Frequencies',1,{'[]'});
 if ~isempty(answer)
@@ -1819,14 +1782,14 @@ if ~isempty(answer)
     handles.controllerinfo.G_didd2amidd_all(:,:,ind_all,:) = [];
     handles.controllerinfo.G_didd2pmidd_all(:,:,ind_all,:) = [];
     
-    F_didd_all = handles.controllerinfo.F_didd_all;
-    G_didd2Pdd_all = handles.controllerinfo.G_didd2Pdd_all;
-    G_didd2amidd_all = handles.controllerinfo.G_didd2amidd_all;
-    G_didd2pmidd_all = handles.controllerinfo.G_didd2pmidd_all;
+    F_didd_all = handles.controllerinfo.F_didd_all; %#ok<NASGU>
+    G_didd2Pdd_all = handles.controllerinfo.G_didd2Pdd_all; %#ok<NASGU>
+    G_didd2amidd_all = handles.controllerinfo.G_didd2amidd_all; %#ok<NASGU>
+    G_didd2pmidd_all = handles.controllerinfo.G_didd2pmidd_all; %#ok<NASGU>
     
     if strcmp(handles.globalinfo.aiConfig,'force')
         handles.controllerinfo.G_didd2f_all(:,:,ind_all,:) = [];
-        G_didd2f_all = handles.controllerinfo.G_didd2f_all;
+        G_didd2f_all = handles.controllerinfo.G_didd2f_all; %#ok<NASGU>
     end
     
     switch handles.globalinfo.aiConfig
@@ -1842,24 +1805,16 @@ set(hObject,'value',0)
 guidata(hObject, handles)
 
 % --- Executes on button press in viewTransferFunctions.
-function viewTransferFunctions_Callback(hObject, eventdata, handles)
+function viewTransferFunctions_Callback(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to viewTransferFunctions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 ViewTransferFunctions_GUI(handles.globalinfo, handles.controllerinfo)
 
-% --- Executes on button press in useNonlinearHarmonicTerms.
-function useNonlinearHarmonicTerms_Callback(hObject, eventdata, handles)
-% hObject    handle to useNonlinearHarmonicTerms (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of useNonlinearHarmonicTerms
-
 
 % --- Executes on button press in resetDAQ.
-function resetDAQ_Callback(hObject, eventdata, handles)
+function resetDAQ_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to resetDAQ (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1867,13 +1822,13 @@ function resetDAQ_Callback(hObject, eventdata, handles)
 %SHOULD MODIFY SO THAT controlled harmomics stays the smae
 
 handles = InitializeHandles(handles);
+handles.daqinfo = InitializeDAQInfo(handles);
 
 InitializeGUI(handles);
 guidata(hObject,handles)
 
-
 % --- Executes when selected object is changed in analogOutputModeSelector.
-function analogOutputModeSelector_SelectionChangeFcn(hObject, eventdata, handles)
+function analogOutputModeSelector_SelectionChangeFcn(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to the selected object in analogOutputModeSelector 
 % eventdata  structure with the following fields (see UIBUTTONGROUP)
 %	EventName: string 'SelectionChanged' (read only)
@@ -1896,7 +1851,7 @@ guidata(hObject,handles)
 
 
 % --- Executes on button press in PddDeleteFreqs.
-function PddDeleteFreqs_Callback(hObject, eventdata, handles)
+function PddDeleteFreqs_Callback(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to PddDeleteFreqs (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1907,7 +1862,7 @@ uiwait
 set(hObject,'value',0)
 
 % --- Executes on button press in PddAddFreqs.
-function PddAddFreqs_Callback(hObject, eventdata, handles)
+function PddAddFreqs_Callback(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to PddAddFreqs (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1917,18 +1872,8 @@ warndlg('Not functional')
 uiwait
 set(hObject,'value',0)
 
-
-function maxUpdatePddAddFreqs_Callback(hObject, eventdata, handles)
-% hObject    handle to maxUpdatePddAddFreqs (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of maxUpdatePddAddFreqs as text
-%        str2double(get(hObject,'String')) returns contents of maxUpdatePddAddFreqs as a double
-
-
 % --- Executes during object creation, after setting all properties.
-function maxUpdatePddAddFreqs_CreateFcn(hObject, eventdata, handles)
+function maxUpdatePddAddFreqs_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to maxUpdatePddAddFreqs (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1939,18 +1884,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-function PddErrorTol_Callback(hObject, eventdata, handles)
-% hObject    handle to PddErrorTol (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of PddErrorTol as text
-%        str2double(get(hObject,'String')) returns contents of PddErrorTol as a double
-
-
 % --- Executes during object creation, after setting all properties.
-function PddErrorTol_CreateFcn(hObject, eventdata, handles)
+function PddErrorTol_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to PddErrorTol (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1963,12 +1898,12 @@ end
 
 
 % --- Executes on button press in readLaser.
-function readLaser_Callback(hObject, eventdata, handles)
+function readLaser_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to readLaser (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[NUIS NPMIDDS NPDDS NAMIDDS NDIDDS NRFS NFS NDIS] = signalCounter(handles);
+[~, NPMIDDS, ~, NAMIDDS, ~, NRFS, ~, NDIS] = signalCounter(handles);
 V2m_LS = handles.calibrationinfo.V2m_LS;
 T_LS2W = handles.calibrationinfo.T_LS2W;
 T = handles.signalinfo.T;
@@ -1990,18 +1925,9 @@ set(handles.laserAxes,'ylim',ylim)
 %set(handles.daqinfo.sAI,'triggertype','HwDigital')
 guidata(hObject,handles)
 
-% --- Executes on selection change in signalPanel2Selector.
-function signalPanel2Selector_Callback(hObject, eventdata, handles)
-% hObject    handle to signalPanel2Selector (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = get(hObject,'String') returns signalPanel2Selector contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from signalPanel2Selector
-
 
 % --- Executes during object creation, after setting all properties.
-function signalPanel2Selector_CreateFcn(hObject, eventdata, handles)
+function signalPanel2Selector_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to signalPanel2Selector (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -2014,7 +1940,7 @@ end
 
 
 % --- Executes on button press in squareSequence.
-function squareSequence_Callback(hObject, eventdata, handles)
+function squareSequence_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to squareSequence (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2051,7 +1977,7 @@ end
 
 
 % --- Executes on button press in sinkSourceSequence.
-function sinkSourceSequence_Callback(hObject, eventdata, handles)
+function sinkSourceSequence_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to sinkSourceSequence (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2087,7 +2013,7 @@ end
 
 
 % --- Executes on button press in samplerSequence.
-function samplerSequence_Callback(hObject, eventdata, handles)
+function samplerSequence_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to samplerSequence (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2123,13 +2049,14 @@ end
 
 
 % --- Executes when user attempts to close figure1.
-function figure1_CloseRequestFcn(hObject, eventdata, handles)
+function figure1_CloseRequestFcn(hObject, eventdata, handles) %#ok<DEFNU>
 % hObject    handle to figure1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: delete(hObject) closes the figure
-%TODO fclose(handles.tcp);
-%TODO delete(handles.tcp)
-%clear ipA portA ipB portB handles.tcp %TODO fix which ports need to be cleared
+stop(handles.daqinfo.sAI)
+stop(handles.daqinfo.sAO)
+fclose(handles.socket);
+delete(handles.socket)
 delete(hObject);
